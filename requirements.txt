@@ -1,0 +1,11 @@
+# Versões conferidas em 2026-09-25 (Python 3.13). Pinadas porque o cache de
+# embeddings (data/processed/emb_*.npy) depende da versão do modelo e da biblioteca.
+pandas==3.0.1
+pyarrow==23.0.1
+numpy==2.4.3
+scikit-learn==1.8.0
+sentence-transformers==5.6.0
+# CPU basta: 36 mil textos curtos, ~8 min por modelo.
+torch==2.12.1
+duckdb==1.5.2
+pytest==9.0.3
