@@ -37,7 +37,7 @@ Implementada em `src/preprocessing/corpus.py` (`montar_corpus`), com 16 testes e
 Sem tratar repetidos, uma pergunta sobre elogios traria dez "muito bom" no top-k, sem valor como evidência.
 Juntar repetidos já no corpus apagaria nota e entrega de cada cópia, que são os filtros mais fortes da base.
 
-**Se fizermos:** corpus de 42.174 documentos (36.460 textos distintos), com os metadados preservados.
+**Se fizermos:** corpus de 42.174 documentos (36.453 textos distintos, sem diferenciar maiúsculas), com os metadados preservados.
 
 ## 3. Consequências
 

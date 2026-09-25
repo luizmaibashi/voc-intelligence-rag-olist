@@ -5,3 +5,4 @@ __pycache__/
 .ipynb_checkpoints/
 .env
 data/processed/
+data/eval/corpus_navegar.csv

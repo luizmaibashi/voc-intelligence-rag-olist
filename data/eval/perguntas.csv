@@ -1,0 +1,15 @@
+id_pergunta;pergunta;tipo;tem_resposta;observacao
+P01;quais os sentimentos e reclamações sobre atraso na entrega?;busca;?;
+P02;quais são os procedimentos quando o pedido nunca chega?;busca;?;pede política da loja, avaliações só contam a experiência
+P03;existem casos de recebimento de produtos que não compraram?;busca;?;
+P04;Existem reclamações de produto que não estão de acordo com a foto do site?;busca;?;
+P05;Quais são os produtos que tem mais alegações de chegarem danificados, ou com alguma avaria?;frequencia;?;
+P06;quais são as reclamações sobre baixa qualidade de material?;busca;?;
+P07;existem casos de clientes que receberam só uma parte do pedido?;busca;?;
+P08;como é a nota de avaliação dos clientes sobre a resposta da loja, quando há algum problema?;frequencia;?;
+P09;o que os clientes mais eleogiam na entrega?;frequencia;?;armadilha de polaridade
+P10;quem são os clientes que ficaram satisfeitos com o nosso produto?;busca;?;armadilha de polaridade
+P11;qual é o maior ponto sobre as notas ruins?;frequencia;?;
+P12;o que acha do app da olist?;busca;?;candidata a sem resposta
+P13;os cliente reclamam de taxa?;busca;?;candidata a sem resposta
+P14;como foi a experiencia com troca porpix parcelado?;busca;?;candidata a sem resposta
