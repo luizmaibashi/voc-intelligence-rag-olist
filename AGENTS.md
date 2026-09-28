@@ -14,12 +14,18 @@ repositório público e vídeo de até 7 minutos para a FIAP. O corpus em
 - **Frequência:** contagem no corpus elegível inteiro, com numerador,
   denominador e período. `freq_texto` mede repetição literal de texto;
   top-k de busca não mede frequência temática.
+- **Elogio à entrega (P09):** menção positiva a prazo/rapidez, integridade,
+  pedido correto ou qualidade geral da entrega. Cumprir a data prevista conta;
+  texto misto preserva o elogio e marca a reclamação separadamente.
 
 ## Ponteiros de decisão
 
 - Ao mudar o corpus ou a unidade de contagem, leia `docs/adr/0001-corpus-limpeza-minima-sem-chunking.md`.
 - Ao responder frequência de atraso, leia `docs/spec/0002-frequencia-atrasos.md` e
   `docs/adr/0004-contagem-atrasos.md`.
+- Ao classificar elogios à entrega, leia `docs/spec/0003-elogios-entrega.md` e
+  `docs/adr/0005-classificacao-elogios.md`; rótulos de
+  `data/eval/p09_triagem_agente.csv` são provisórios, não gabarito humano.
 - Ao mudar geração e recusa do RAG, leia `docs/spec/0001-resposta-com-evidencias.md`.
 
 Avaliações têm texto livre: revise dados pessoais e o nível de serviço antes
