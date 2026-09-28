@@ -47,7 +47,7 @@ def responder(pergunta: str, evidencias: list[dict],
     if not isinstance(texto, str) or not texto.strip() or not isinstance(citacoes, list):
         return _erro("Resposta sem texto ou citações válidas.")
     if saida["status"] == "sem_evidencia":
-        return _recusar(texto.strip())
+        return _recusar("As avaliações recuperadas não sustentam a resposta solicitada.")
     if not citacoes or any(not isinstance(i, str) or i not in ids for i in citacoes):
         return _erro("Resposta citou avaliações ausentes do contexto.")
     return Resposta("respondida", texto.strip(), list(dict.fromkeys(citacoes)))

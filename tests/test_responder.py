@@ -84,6 +84,16 @@ def test_politica_oficial_pode_ser_recusada_com_tema_parecido():
     assert resposta.status == "sem_evidencia"
 
 
+def test_recusa_nao_exibe_afirmacao_livre_do_modelo():
+    gerar = lambda *_: {"status": "sem_evidencia",
+                        "texto": "O prazo oficial de troca é 30 dias.",
+                        "review_ids": ["r1"]}
+    resposta = responder("Qual o prazo oficial de troca?", EVIDENCIAS, gerar)
+    assert resposta.status == "sem_evidencia"
+    assert resposta.review_ids == []
+    assert "30 dias" not in resposta.texto
+
+
 def test_adaptador_envia_contexto_e_schema_sem_rede():
     class Models:
         def generate_content(self, **kwargs):
