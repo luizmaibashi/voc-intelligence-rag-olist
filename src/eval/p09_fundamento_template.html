@@ -1,0 +1,30 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>P09 — motivo do elogio geral</title>
+<style>body{font:16px system-ui;max-width:960px;margin:2rem auto;padding:0 1rem;color:#17212b;background:#f5f7fa}
+h1{font-size:1.6rem}.card{background:white;padding:1.2rem;margin:1.2rem 0;border:1px solid #ccd5df;border-radius:10px}
+.comment{font-size:1.08rem;white-space:pre-wrap;background:#eef3f8;padding:1rem;border-radius:6px}
+select,input,button{font:inherit}button{padding:.55rem .8rem;cursor:pointer;background:#123e5a;color:white;border:0;border-radius:6px}
+input{width:97%;padding:.4rem}small{color:#566}.toolbar{position:sticky;top:0;background:#f5f7fa;padding:.8rem 0;border-bottom:1px solid #ccd5df}
+.help{background:#fff8df;padding:1rem;border-radius:6px}</style>
+<h1>P09 — motivo do elogio geral</h1>
+<p class="help">Você marcou “sim” para elogio geral nestes 15 casos. Agora indique <b>o que o texto elogia</b>. “Chegou rápido” é só prazo; “entrega foi ótima” avalia a entrega como um todo. Nota alta, silêncio sobre defeitos e elogio ao produto não bastam. Escolha a alternativa que o texto realmente sustenta, sem inferir fatores não mencionados.</p>
+<div class="toolbar"><button id="export">Exportar decisões CSV</button> <span id="progress"></span></div><div id="cases"></div>
+<script>const rows=__ROWS_JSON__;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const root=document.getElementById('cases'),key='p09-motivo-geral-20260929';let saved={};try{saved=JSON.parse(localStorage.getItem(key)||'{}')}catch{}
+function persist(){try{localStorage.setItem(key,JSON.stringify(saved))}catch{}}
+function update(){document.getElementById('progress').textContent=rows.filter(r=>saved[r.id]?.motivo).length+'/'+rows.length+' decisões';}
+for(const r of rows){
+ const card=document.createElement('section');card.className='card';
+ card.innerHTML='<h2>Caso '+r.n+' <small>'+r.id+'</small></h2><div class="comment">'+esc(r.texto)+'</div><p><label>O elogio geral se apoia em quê? <select><option value="">Escolha</option><option value="entrega_como_todo">O texto avalia positivamente a entrega como um todo</option><option value="processo_com_entrega">O texto avalia positivamente o processo incluindo a entrega</option><option value="apenas_atributo">Só elogia prazo ou outro atributo específico</option><option value="produto_ou_nota">Só elogia produto ou nota alta</option><option value="ambiguo">Não é possível decidir</option></select></label></p><label>Se marcou uma das duas primeiras: qual palavra indica avaliação geral? <input maxlength="30" placeholder="Uma palavra, sem copiar o comentário"></label>';
+ root.append(card);const choice=card.querySelector('select'),word=card.querySelector('input');
+ choice.value=saved[r.id]?.motivo||'';word.value=saved[r.id]?.palavra||'';
+ choice.onchange=()=>{saved[r.id]??={};saved[r.id].motivo=choice.value;persist();update()};
+ word.oninput=()=>{saved[r.id]??={};saved[r.id].palavra=word.value;persist()};
+}update();
+document.getElementById('export').onclick=()=>{
+ if(rows.some(r=>!saved[r.id]?.motivo)){alert('Complete os 15 casos antes de exportar.');return}
+ if(rows.some(r=>['entrega_como_todo','processo_com_entrega'].includes(saved[r.id].motivo)&&!saved[r.id].palavra?.trim())){alert('Nos elogios gerais, indique a palavra que expressa a avaliação.');return}
+ const lines=[['review_id','fundamento','palavra_avaliacao'],...rows.map(r=>[r.id,saved[r.id].motivo,saved[r.id].palavra||''])];
+ const csv=lines.map(a=>a.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(';')).join('\r\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='p09_fundamento_elogio_geral.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+};</script></html>

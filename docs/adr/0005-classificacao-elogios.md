@@ -55,3 +55,25 @@ de notas livres e PII; a comparação usa somente IDs e rótulos.
 A rodada 3 revelou muitos desacordos nos quatro temas e, por ter motivado
 este ajuste, passa a ser diagnóstico de desenvolvimento. Uma nova amostra
 humana, independente da mudança, é necessária antes de qualquer ranking.
+
+## Fronteira entre elogio observado e satisfação inferida
+
+Na decisão humana da rodada 3, Luiz considerou que uma avaliação somente
+positiva permitia inferir boa experiência em todos os aspectos, mesmo sem
+menção individual. Para P09, essa inferência inflaria os quatro temas em
+conjunto e deixaria de responder quais aspectos foram **elogiados no texto**.
+Luiz decidiu preservar a inferência como leitura separada e manter o ranking
+P09 restrito aos aspectos explicitamente elogiados. Elogio apenas ao produto
+não conta como elogio à entrega. Essa decisão mantém o baseline explicável;
+o custo é não capturar satisfação implícita no ranking de temas.
+
+Os votos da rodada 3 foram produzidos sob a rubrica anterior e não medem
+precisão ou revocação do classificador para a pergunta P09. O teste seguinte
+deve usar casos novos e instruções de rotulagem que distingam elogio observado
+de inferência de boa experiência.
+
+A nota de cinco estrelas e a ausência de reclamação são sinais possíveis de
+satisfação geral, não evidência de elogio textual a cada atributo. A leitura
+de satisfação poderá ser analisada separadamente; usá-la como rótulo P09
+inflaria os temas em conjunto. Um elogio somente ao prazo não cria
+`elogio_geral` sem avaliação explícita da entrega como um todo.
