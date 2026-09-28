@@ -13,3 +13,7 @@ P11;qual é o maior ponto sobre as notas ruins?;frequencia;?;
 P12;o que acha do app da olist?;busca;?;candidata a sem resposta
 P13;os cliente reclamam de taxa?;busca;?;candidata a sem resposta
 P14;como foi a experiencia com troca porpix parcelado?;busca;?;candidata a sem resposta
+P15;Qual é o prazo oficial de reembolso da Olist quando uma entrega atrasa?;sem_resposta;0;avaliações relatam experiências, não estabelecem política oficial
+P16;Qual percentual dos pedidos feitos em 2026 chegou atrasado?;sem_resposta;0;corpus cobre 2016 a 2018, não 2026
+P17;Qual é o prazo oficial para trocar um produto danificado?;sem_resposta;0;relatos de troca não provam a política oficial
+P18;Qual foi o valor total reembolsado aos consumidores em 2018?;sem_resposta;0;corpus de avaliações não contém transações de reembolso completas

@@ -1,0 +1,8 @@
+pandas
+pyarrow
+numpy
+scikit-learn
+sentence-transformers
+duckdb>=1.5,<2
+pytest
+google-genai>=1.73,<2

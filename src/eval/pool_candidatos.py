@@ -61,9 +61,14 @@ def top_k(scores: np.ndarray) -> np.ndarray:
     return np.argsort(-scores)[:TOP_K]
 
 
+def perguntas_para_pool(perguntas: pd.DataFrame) -> pd.DataFrame:
+    """Preserva o pool julgado; negativas são avaliadas separadamente."""
+    return perguntas.loc[perguntas.tipo.ne("sem_resposta")].copy()
+
+
 def main() -> None:
     docs = textos_distintos()
-    perguntas = pd.read_csv(PERGUNTAS, sep=";")
+    perguntas = perguntas_para_pool(pd.read_csv(PERGUNTAS, sep=";"))
     textos = docs.texto.tolist()
     achados = []  # (id_pergunta, indice_doc, busca, posicao, score)
 
