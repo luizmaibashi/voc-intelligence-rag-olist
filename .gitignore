@@ -6,3 +6,4 @@ __pycache__/
 .env
 data/processed/
 data/eval/corpus_navegar.csv
+data/eval/p09_votacao_local.html

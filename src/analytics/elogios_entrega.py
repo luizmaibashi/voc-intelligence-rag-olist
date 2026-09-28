@@ -68,6 +68,6 @@ def classificar_elogio(texto: str) -> RotuloElogio:
             temas.add("integridade")
         if PEDIDO_CORRETO.search(trecho):
             temas.add("pedido_correto")
-        if not temas and GERAL.search(trecho):
+        if GERAL.search(trecho):
             temas.add("elogio_geral")
     return RotuloElogio(frozenset(temas), bool(temas) and negativo)

@@ -15,6 +15,8 @@ from src.analytics.elogios_entrega import classificar_elogio  # noqa: E402
     ("Chegou em menos de 2 dias.", {"prazo_rapidez"}),
     ("Chegou tudo certinho conforme o pedido.", {"pedido_correto"}),
     ("Entrega excelente!", {"elogio_geral"}),
+    ("Entrega excelente e rápida.", {"elogio_geral", "prazo_rapidez"}),
+    ("Entrega excelente, chegou conforme o pedido.", {"elogio_geral", "pedido_correto"}),
     ("Produto excelente, mas a entrega demorou.", set()),
     ("A entrega não foi rápida.", set()),
     ("Não chegou no prazo.", set()),

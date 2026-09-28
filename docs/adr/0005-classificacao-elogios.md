@@ -41,3 +41,17 @@ não contar como elogio. Contra os rótulos provisórios:
 rodadas e suas versões estão em `data/eval/p09_validacao_agente.csv`.
 Esses rótulos **não são gabarito humano**; o gate para divulgar ranking continua
 pendente.
+
+## Revisão da rubrica em 2026-09-28
+
+Na rodada humana 3 (25 comentários, amostra balanceada pelas previsões da regra),
+Luiz definiu que um elogio geral explícito pode coexistir com atributo
+específico. Exemplo de contrato: "entrega excelente e rápida" recebe
+`elogio_geral` e `prazo_rapidez`. A implementação anterior só atribuía
+`elogio_geral` quando nenhum outro tema havia sido encontrado; a condição foi
+removida. O arquivo exportado pelo Luiz fica fora do repositório até revisão
+de notas livres e PII; a comparação usa somente IDs e rótulos.
+
+A rodada 3 revelou muitos desacordos nos quatro temas e, por ter motivado
+este ajuste, passa a ser diagnóstico de desenvolvimento. Uma nova amostra
+humana, independente da mudança, é necessária antes de qualquer ranking.
