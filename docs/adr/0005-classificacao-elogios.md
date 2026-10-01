@@ -1,6 +1,7 @@
 # ADR-0005: Regras locais como baseline de temas elogiados
 
-**Data:** 2026-09-28. **Status:** Accepted para protótipo; ranking do corpus pendente.
+**Data:** 2026-09-28. **Status:** Congelado em 2026-10-01; liberada só a
+liderança de prazo/rapidez, ordem completa bloqueada (ver seção final).
 **Proposto por:** Luiz Maibashi.
 
 ## Contexto e decisão
@@ -77,3 +78,16 @@ satisfação geral, não evidência de elogio textual a cada atributo. A leitura
 de satisfação poderá ser analisada separadamente; usá-la como rótulo P09
 inflaria os temas em conjunto. Um elogio somente ao prazo não cria
 `elogio_geral` sem avaliação explícita da entrega como um todo.
+
+## Congelamento em 2026-10-01
+
+Com 31 dias até a entrega e P09 fora dos requisitos obrigatórios do enunciado
+(que exige resposta com evidências, não ranking validado), Luiz decidiu parar a
+validação quando mais rótulos deixassem de mudar a decisão. O teste em
+`reports/p09_resultado_amostra_independente.md` mostrou prazo/rapidez em 1º na
+regra e nos rótulos humanos, e nenhuma avaliação da amostra com elogio geral sem
+elogio ao prazo. A liderança é publicável; a ordem do 2º ao 4º não, porque a
+regra subestima elogio geral (revocação 1/16).
+
+Custo aceito: P09 não terá ranking completo. Reabrir somente se a demo precisar
+da ordem completa; nesse caso, ampliar `GERAL` e repetir a amostra independente.

@@ -1,6 +1,6 @@
 # Spec 0003 — Baseline de elogios à entrega (P09)
 
-**Status:** protótipo local. **Dono da decisão de publicar resultado:** Luiz Maibashi.
+**Status:** congelado em 2026-10-01 (ver critério 6). **Dono da decisão de publicar resultado:** Luiz Maibashi.
 
 ## Objetivo
 
@@ -55,6 +55,11 @@ atribuir reclamação a produto específico e resolver P05, P08 ou P11.
    discutir a pergunta P09, decidiu contar nela apenas os aspectos citados e
    manter a inferência de boa experiência separada. Seus votos originais
    permanecem como evidência diagnóstica, não como gabarito para medir P09.
+6. **Gate em 2026-10-01:** liberada a afirmação de que prazo/rapidez é o
+   aspecto mais elogiado (piso de 9.724 pela regra, com faixa corrigida).
+   Ordem do 2º ao 4º lugar segue bloqueada. Evidência e limites em
+   `reports/p09_resultado_amostra_independente.md`, seção "Decisão de
+   congelamento".
 
 ## Riscos
 

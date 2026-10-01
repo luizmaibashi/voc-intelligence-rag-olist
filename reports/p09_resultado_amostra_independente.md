@@ -115,3 +115,42 @@ dos CSVs Olist locais, executar
 `data/processed/p09_fundamento_elogio_geral_local.html`. O template versionado
 não contém comentários. Responder os 15 casos e exportar
 `p09_fundamento_elogio_geral.csv` antes de qualquer ajuste no classificador.
+(Superado pela decisão de congelamento abaixo.)
+
+## Decisão de congelamento (2026-10-01)
+
+**Pergunta de parada:** mais validação mudaria a decisão do gestor? P09 pede
+"o que os clientes **mais** elogiam", portanto a ordem dos temas importa mais que
+a contagem exata. Teste: comparar a ordem produzida pela regra no corpus com a
+ordem dos rótulos humanos (`rotulo_final`) desta amostra, sem nova rotulagem.
+Antes de medir, Luiz previu que nenhum tema passaria à frente de prazo/rapidez.
+
+| Tema | Regra no corpus (n=42.174) | Humano na amostra (n=50), IC95% Wilson |
+|---|---:|---|
+| Prazo/rapidez | 9.724 (23,1%), 1º | 20/50 = 0,40 [0,28; 0,54], 1º |
+| Elogio geral | 488 (1,2%), 4º | 16/50 = 0,32 [0,21; 0,46], 2º |
+| Pedido correto | 907 (2,2%), 2º | 4/50 = 0,08 [0,03; 0,19], 3º |
+| Integridade | 733 (1,7%), 3º | 3/50 = 0,06 [0,02; 0,16], 4º |
+
+**Comparação pareada, prazo × elogio geral, nas mesmas 50 avaliações:** 16 com
+ambos, 4 só prazo, **0 só elogio geral**. Mesmo que os 15 `sim` pendentes de
+elogio geral fossem todos confirmados, nenhum caso teria elogio geral sem prazo;
+a liderança de prazo/rapidez não depende desses votos.
+
+**Coerência entre métodos:** com precisão observada de 14/14 e revocação de
+14/20 [0,48; 0,86] para prazo, a contagem corrigida fica em cerca de 13,9 mil
+(faixa 11,4 mil a 20,2 mil, ou 27% a 48% do corpus), compatível com a
+prevalência da amostra (28% a 54%). A correção supõe que a amostra represente
+o corpus elegível; a faixa herda apenas a incerteza da revocação.
+
+**Decisão de Luiz:**
+- Liberado: "prazo/rapidez é o aspecto de entrega mais elogiado", com 9.724
+  como piso da regra e a faixa corrigida acima.
+- Bloqueado: ordem do 2º ao 4º lugar a partir da regra. A regra põe elogio
+  geral em último por revocação de 1/16; a amostra o põe em 2º. Se citado,
+  usar a prevalência da amostra com seu intervalo.
+- Encerrado: o formulário dos 15 casos pendentes, porque nenhuma resposta muda
+  a afirmação liberada. Regras e rótulos permanecem como estão.
+
+A previsão de Luiz acertou a liderança. O argumento que sustenta o resultado
+é a comparação pareada, não uma expectativa prévia sobre o mercado.
