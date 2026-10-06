@@ -30,4 +30,7 @@ repositório público e vídeo de até 7 minutos para a FIAP. O corpus em
 
 Avaliações têm texto livre: revise dados pessoais e o nível de serviço antes
 de qualquer envio externo. A chave Gemini atual está no nível gratuito;
-avaliações reais ainda não foram liberadas para envio nesta frente.
+Luiz liberou em 2026-10-06 somente os payloads E01–E20 revisados de
+`data/eval/geracao_casos.json` (registro na spec 0006). Antes de enviar contexto
+novo ou alterado, revisar o texto e obter liberação explícita; a autorização
+deste lote não libera o corpus nem a interface de busca livre.

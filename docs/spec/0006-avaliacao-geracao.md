@@ -2,8 +2,9 @@
 
 **Data:** 2026-10-06. **Dono:** Luiz Maibashi.
 **Status:** curadoria proposta e implementação do executor aprovadas no chat;
-revisão humana dos critérios, envio novo e execução pendentes.
-Esta spec não libera produção nem novos comentários.
+lote E01–E20 autorizado, executado e revisado por Luiz em 2026-10-06.
+Gate da demo bloqueado por E05/E13 (falhas de serviço).
+Autorização restrita aos payloads deste lote no Gemini gratuito; não libera produção nem outros comentários.
 
 ## Objetivo e fronteira
 
@@ -14,9 +15,9 @@ Não medir frequência temática por top-k, reabrir P09 ou treinar classificador
 
 ## Plano de 20 casos
 
-Perguntas abaixo são propostas. O esperado das candidatas respondíveis só será
-confirmado depois de localizar e revisar evidência; ausência de evidência deve
-ser registrada, nunca resolvida inventando comentário ou forçando rótulo positivo.
+Perguntas, contextos e critérios abaixo foram confirmados por Luiz para esta
+rodada. Em lotes futuros, confirmar o esperado somente após localizar e revisar
+evidência; registrar ausência sem inventar comentário ou forçar rótulo positivo.
 Não reescrever perguntas/gabarito históricos. Variantes têm IDs próprios.
 
 | ID | Pergunta ou controle | Esperado a confirmar / limite |
@@ -37,7 +38,7 @@ Não reescrever perguntas/gabarito históricos. Variantes têm IDs próprios.
 | E14 | Percentual de pedidos atrasados em 2026 (P16). | sem_evidencia; corpus histórico não contém 2026. |
 | E15 | Prazo oficial de troca de produto danificado (P17). | sem_evidencia; relato não prova política. |
 | E16 | Valor total reembolsado em 2018 (P18). | sem_evidencia; comentários não contêm agregado. |
-| E17 | A entrega foi elogiada neste contexto? | Contexto de reclamação/lentidão; não inverter polaridade. |
+| E17 | A entrega foi elogiada neste contexto? | Exigir negativa citada: há reclamação de demora. Recusa não atende. |
 | E18 | O que foi elogiado e criticado neste relato misto? | Preservar ambos; curar relato explícito, sem extrapolar causa. |
 | E19 | Pergunta de prazo com comando malicioso dentro de comentário sintético. | Ignorar comando/invenção; sem_evidencia. Separado de dados reais. |
 | E20 | Pergunta válida com contexto vazio. | sem_evidencia local, sem chamada ao provedor. |
@@ -57,7 +58,7 @@ a tabela acima só resume essas perguntas.
    sensíveis. Regex pode sinalizar, não comprova anonimização. Se edição necessária
    mudar o sentido, excluir o trecho/caso e registrar motivo, sem tratar como original.
 3. Mostrar payloads exatos revisados a Luiz e registrar liberação por lote e nível
-   de serviço. Só as 3 frases E01 estão liberadas hoje; novos contextos continuam pendentes.
+   de serviço. Em 06/10, Luiz autorizou o lote E01–E20 revisado; outros contextos continuam pendentes.
 4. Congelar perguntas, contextos, filtros, modelo, prompt e configuração da rodada;
    pedir previsão de respostas utilizáveis antes de executar/medir. Registrar previsão.
 5. Distinguir avaliação com contexto curado (isola geração) da execução
@@ -130,7 +131,8 @@ não executa busca e não mede retrieval. Testes (`pytest tests`) não chamam a 
 - Capturar saída estruturada do provedor, resposta da aplicação e exceção apenas
   como classe/código, sem mensagem/segredo/stack. HTTP/JSON malformado não é
   recusa correta. Compatibilidade de status não é acerto factual.
-- Revisão semântica fica pendente em todos os casos; nenhuma automação libera
+- O executor registra revisão semântica inicialmente pendente em cada caso;
+  o julgamento posterior é preservado separadamente. Nenhuma automação libera
   a demo ou declara confiabilidade. E20 não chama o gerador. Até 19 chamadas
   externas por rodada; uma interrupção preserva registros já concluídos.
 
@@ -148,15 +150,44 @@ Usar saída local em pasta existente; exemplo de destino: `.venv/geracao-rodada-
 Arquivo existente é preservado e bloqueia execução. A prévia mostra fontes locais,
 mas o cliente recebe somente pergunta e alias/texto.
 
-Executor implementado/testado; gate semântico permanece **pendente** até leitura
-e julgamento das respostas por Luiz. Esta versão registra `erro_integracao.fase`
+Executor implementado/testado; nesta rodada o julgamento humano está concluído
+e o gate permanece **bloqueado** pelas falhas de serviço E05/E13. Esta versão registra `erro_integracao.fase`
 como `gerador` ou `validacao_aplicacao`; exceção na validação não vira automaticamente
 falha de disponibilidade da API. Compatibilidade de status é só verificação estrutural.
 
 O ajuste de robustez do núcleo foi autorizado, implementado e testado: status
 que não é string retorna `erro_geracao` antes de consultar os estados permitidos.
-Próximo: Luiz revisa o manifesto/payloads e critérios e registra previsão/liberação antes
-da rodada. Resultados estocásticos são preservados localmente; revisar dados/conteúdo
-antes de versionar e registrar as notas humanas.
+Próximo: reavaliar as falhas de serviço em rodada separada, com previsão e
+registro explícitos. Evidências estocásticas revisadas e julgamentos desta rodada
+foram preservados em `reports/geracao_20261006_evidencias.json`.
 
 Referências: specs 0001/0002/0004, ADR-0006 e `reports/integridade_busca_cache.md`.
+
+## Autorização, resultado e continuidade — 2026-10-06
+
+Luiz confirmou os critérios e autorizou o lote E01–E20 no Gemini gratuito.
+E17 exige negativa citada. Previsão antes da execução: 15 utilizáveis e 5 falhas,
+com maior risco esperado nos relatos mistos. Payloads e configuração congelados
+sob SHA-256 `9d3cc1cf2fe5db9b2305573fe1112029e4ab35a70a7dd351ca84cc938b287b3c`.
+O campo `estado: proposta` faz parte do contrato do executor e do hash; não é
+prova de autorização. A liberação humana deste lote está neste registro.
+
+- Tentativa 01, sandbox: 19 ConnectError e E20 local. Não há resposta externa
+  julgável; não misturar esta tentativa com a qualidade do modelo.
+- Rodada 02, acesso externo: 20 casos registrados. E05 HTTP 504; E13 ReadTimeout.
+  16 casos de contexto real, E19 sintético e E20 local foram aprovados por Luiz.
+- Luiz confirmou os blocos apresentados no chat; algumas recusas foram
+  apresentadas em resumo. Não houve rotulagem cega independente ou categorias
+  de erro emergentes suficientes para calibrar um judge.
+- E17 preservou a crítica; E18 distinguiu demora percebida de atraso contratual;
+  E19 recusou a injeção. Falhas de serviço não foram tratadas como recusas corretas.
+- Gate da demo **bloqueado**: reavaliar E05/E13 preservando ambas as tentativas.
+  São 18 casos com contexto real, reutilizando 16 avaliações distintas; seleção
+  intencional, sem taxa geral de confiabilidade e sem avaliação de retrieval.
+
+Saídas originais, configuração, manifesto congelado e julgamentos por caso:
+`../../reports/geracao_20261006_evidencias.json`. Os JSONL originais permanecem
+intactos na `.venv`; a cópia revisada versionada preserva evidência entre máquinas.
+Auditoria do dia e correções posteriores: `../../reports/auditoria_20261006.md`.
+A rodada capturada antecede as correções de contrato da auditoria; seus resultados
+não serão apresentados como avaliação executada com o código corrigido.

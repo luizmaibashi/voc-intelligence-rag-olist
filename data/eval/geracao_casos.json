@@ -350,10 +350,9 @@
       "fontes_locais": {
         "candidato-e17": "cbc01bfbae1deb90673757d69dc3b593"
       },
-      "criterio_proposto": "Não há elogio: entrega foi criticada como demorada. Resposta negativa citada ou recusa por ausência de elogio podem ser adequadas.",
+      "criterio_proposto": "Não há elogio: entrega foi criticada como demorada. Exigir resposta negativa com citação; recusa não atende ao critério confirmado por Luiz.",
       "status_esperados": [
-        "respondida",
-        "sem_evidencia"
+        "respondida"
       ]
     },
     {
