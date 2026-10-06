@@ -56,6 +56,14 @@ def test_saida_malformada_falha_fechado():
     assert responder("Pergunta", EVIDENCIAS, lambda *_: {"texto": "x"}).status == "erro_geracao"
 
 
+@pytest.mark.parametrize("status", [[], {}, None, 1, True, "desconhecido"])
+def test_status_fora_do_dominio_retornado_pelo_modelo_falha_fechado(status):
+    resposta = responder("Pergunta", EVIDENCIAS,
+                         lambda *_: {"status": status, "texto": "x", "review_ids": ["r1"]})
+    assert resposta.status == "erro_geracao"
+    assert resposta.review_ids == []
+
+
 def test_id_valido_e_inventado_juntos_falham_fechado():
     gerar = lambda *_: {"status": "respondida", "texto": "x", "review_ids": ["r1", "r999"]}
     assert responder("Pergunta", EVIDENCIAS, gerar).status == "erro_geracao"

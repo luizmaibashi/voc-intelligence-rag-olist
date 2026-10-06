@@ -40,7 +40,8 @@ def responder(pergunta: str, evidencias: list[dict],
         saida = gerar(pergunta, evidencias)
     except Exception:
         return _erro("O serviço de geração falhou nesta consulta.")
-    if not isinstance(saida, dict) or saida.get("status") not in {"respondida", "sem_evidencia"}:
+    if (not isinstance(saida, dict) or not isinstance(saida.get("status"), str)
+            or saida["status"] not in {"respondida", "sem_evidencia"}):
         return _erro("Saída inválida do modelo.")
     texto = saida.get("texto")
     citacoes = saida.get("review_ids")

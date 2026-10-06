@@ -321,3 +321,92 @@ A seleção original E03 falava em produto danificado; substituída por relato l
 Atenção na rubrica: E17 pode receber resposta negativa fundamentada, sem exigir um único status artificial. E18 contém crítica à demora e reconhecimento de entrega dentro do prazo. Um elogio ao preço não vira elogio à entrega.
 
 Próximo: Luiz confirma critérios/contextos; implementar runner com escopo próprio, congelar payloads e registrar previsão antes da execução. Os candidatos novos continuam sem liberação de envio. Scratch legível por máquina: `.venv/curadoria_evals_20.json` (ignorado; não é fonte versionada). Esta seção preserva os textos/IDs/critérios para retomada e futura criação do manifesto versionado.
+
+## Executor e manifesto implementados — 2026-10-06
+
+Escopo confirmado por Luiz: executor, testes, manifesto, spec e checkpoint.
+`src/eval/avaliar_geracao.py` implementado pelo `sonnet-medium`; desenho e
+auditoria do orquestrador. `data/eval/geracao_casos.json` contém as 20 propostas,
+com textos e fontes conferidos localmente. Estado continua `proposta`; sem
+julgamento humano ou liberação dos contextos novos. Sem API real nesta etapa.
+
+Prévia padrão valida contrato fechado, mostra payloads/critérios e identidade
+do lote; não constrói cliente. Hash SHA-256 inclui manifesto e configuração
+(modelo/prompt/schema/MIME/temperatura/limite/timeout/tentativas/SDK). CLI de
+execução requer hash exato, previsão inteira e saída nova. Informar hash é
+declaração do operador; não comprova autorização humana e não libera este lote.
+
+JSONL exclusivo preserva cabeçalho, saída do provedor, resposta da aplicação,
+fase/classe/código da falha e resultados parciais com flush. E20 não chama gerador.
+Compatibilidade de status é estrutural; julgamento semântico fica pendente.
+Sem retry, fallback, judge automático ou mistura com avaliação de retrieval.
+
+### Verificação
+
+- Red inicial do agente: erro de coleta pelo módulo ainda ausente.
+- Focal final do agente: 26 testes passaram, sem API.
+- Suíte completa do principal: **141 testes passaram** na venv.
+- Cobertura de linhas do executor: **141 de 146 linhas executáveis**, acima
+  do gate de 80%. Previsão técnica do Codex antes de medir: 90%; previsão
+  de Luiz não recebida antes da medição. Contagem determinística de código,
+  não estimativa amostral de qualidade do modelo.
+- Prévia CLI com manifesto real proposta validada; nenhum cliente construído.
+- Auditoria reforçou teste de configuração do SDK: assertions são verificadas
+  fora do callback que captura exceções, para não ocultar AssertionError.
+  Model/MIME/schema/prompt/temperatura/limite e ausência de fontes locais no envio
+  verificados com cliente falso; teste focal desse cliente passou.
+- Coverage reaproveitado da instalação global como ferramenta de análise no
+  processo da venv, sem inserir o diretório global no sys.path nem instalar
+  dependências novas. Artefatos de teste/cobertura na venv ignorada.
+
+### Defeito adjacente identificado e escopo pendente
+
+Reprodução direta, sem API: `responder` com contexto válido e gerador retornando
+`{"status":[],"texto":"x","review_ids":[]}` lança TypeError. Causa: teste de
+pertencimento a um set recebe status não hashável, sem validar tipo antes.
+O executor registra a falha como `validacao_aplicacao` e continua; isso não
+corrige o núcleo nem deve ser apresentado como correção do RAG geral.
+Proposta submetida ao Luiz: adicionar `src/rag/responder.py` e
+`tests/test_responder.py` para validar status string e cobrir a regressão.
+Não editar esses arquivos sem confirmação. Priorizar antes da demo pública.
+
+### Retomada
+
+`python -X utf8 -m src.eval.avaliar_geracao --manifesto data/eval/geracao_casos.json`
+gera a prévia local. Rodada externa continua pendente de revisão/predição/liberação.
+Aprovação da implementação não autoriza envio; saber o hash não é consentimento.
+Próximo: confirmação do ajuste no núcleo, revisão dos payloads/critério e rodada
+com notas humanas. Contexto desta sessão passou de 150 mil tokens segundo
+bridge_coleta; usar checkpoint e sessão nova para a próxima fase, se necessário.
+
+## Revisão final e correção do núcleo — 2026-10-06
+
+Luiz confirmou adicionar responder.py/test_responder.py e pediu revisão ampliada.
+Reprodução mínima antes da correção: status lista/dict causou TypeError;
+regressão parametrizada teve 2 falhas e 4 passes (None/número/bool/estado desconhecido).
+Causa isolada: pertinência ao set assumia status hashável. Correção na entrada:
+exigir string antes de verificar estados. Dados malformados agora retornam
+erro_geracao, sem citação, preservando comportamento das saídas válidas.
+
+Teste do executor atualizado: status=[] mantém saída para auditoria e retorna
+erro_geracao sem exceção. Guarda de falha inesperada da aplicação verificada
+separadamente por simulação, sem segredo no log; HTTP continua em fase gerador.
+Suíte completa final na venv: **148 passed**, FutureWarning tratado como erro,
+basetemp novo em pasta pai criada/verificada. Sem API real nesta etapa.
+
+Revisão ampliada independente sonnet-medium, código/manifesto/specs/cache/busca:
+nenhum bloqueador novo no executor, manifesto, cache ou correção do núcleo.
+Dois débitos preexistentes, sem impedir contexto curado:
+
+- Antes de interface com entrada livre, validar situacao_entrega em buscar.
+  Reprodução local com fixture válida e filtro atrasadoo retornou sem_evidencia
+  no pipeline; deveria rejeitar domínio inválido em vez de mascarar como falta
+  de avaliações. Arquivos prováveis: indice.py/test_indice.py e teste do pipeline.
+- AGENTS.md do projeto ainda diz nenhuma avaliação real liberada. Atualizar a
+  exceção restrita às três frases com skill writing-for-agents em etapa própria;
+  sem ampliar liberação do resto do corpus. Autorização direta do Luiz nesta
+  conversa e registros do lote prevalecem sobre a descrição histórica.
+
+Os casos novos continuam proposta; revisão do software não libera payloads.
+Próximo: sessão nova para revisão humana dos 20 casos, previsão/liberação de lote
+ e execução com notas livres. Corrigir débito de filtros antes da demo livre.

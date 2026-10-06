@@ -1,8 +1,9 @@
 # Spec 0006 — Avaliação exploratória de resposta e recusa
 
 **Data:** 2026-10-06. **Dono:** Luiz Maibashi.
-**Status:** plano de preparação aprovado no chat; casos/contextos ainda não curados,
-envio novo e execução pendentes. Esta spec não libera produção nem novas avaliações.
+**Status:** curadoria proposta e implementação do executor aprovadas no chat;
+revisão humana dos critérios, envio novo e execução pendentes.
+Esta spec não libera produção nem novos comentários.
 
 ## Objetivo e fronteira
 
@@ -71,7 +72,10 @@ filtros, esperado confirmado e sua evidência, modo de execução, modelo/config
 status/saída do provedor e da aplicação, citações, erro HTTP separado, número da
 tentativa, revisão humana e nota livre do que ocorreu. Segredos não entram no log.
 Preservar saídas estocásticas usadas no julgamento, sem depender de regeneração.
-Dados pessoais/originais não entram no Git ou no relatório público.
+Dados pessoais e cópias brutas não revisadas não entram no Git ou no relatório
+público. Os trechos pequenos revisados, sem identificadores pessoais, ficam no
+manifesto para reproduzir o contexto; IDs originais do dataset servem à conferência
+local e não são enviados ao provedor.
 
 Luiz lê as saídas e escreve notas livres primeiro; depois agrupamos problemas
 recorrentes. Não automatizar judge nem escolher categorias finais antes da leitura.
@@ -98,11 +102,61 @@ com casos frescos revisados antes de alegar validação mais ampla.
 
 ## Execução e checkpoint
 
-Entrada executável para este plano ainda não implementada; não existe gate
-automatizado ativo desta spec. Comando/runner e seus arquivos exigem escopo próprio
-antes da implementação. Testes unitários (`pytest tests`) não executam esta avaliação.
-Próximo: curar localmente E02–E12 e E17–E18, apresentar payloads e confirmar rótulos;
-depois formalizar runner e registrar autorização de lote. Ao fechar a curadoria,
-atualizar só a frente TC4 e retomar a execução em sessão separada, se necessário.
+Escopo confirmado por Luiz: `src/eval/avaliar_geracao.py`,
+`tests/test_avaliar_geracao.py`, `data/eval/geracao_casos.json`, esta spec,
+relatório e bridge. Executor desta versão avalia **geração com contexto curado**;
+não executa busca e não mede retrieval. Testes (`pytest tests`) não chamam a API.
+
+### Contrato do manifesto e da execução
+
+- Manifesto proposto versionado com os 20 IDs E01–E20 exatos, origem, pergunta,
+  evidências alias/texto, mapa de fontes locais, critério e estados esperados.
+  Campo/caso desconhecido, caso ausente, duplicata, texto vazio ou contrato inválido
+  falham visivelmente. Controle E20 exige contexto vazio; origens não se misturam.
+- Prévia é padrão: valida e exibe os payloads, critérios e identidade do lote;
+  não constrói cliente nem envia à API. A aprovação desta implementação não
+  autoriza esses payloads novos.
+- SHA-256 inclui manifesto e configuração efetiva (modelo, prompt/schema, limites,
+  timeout, tentativas e versão do SDK). Alteração após revisão exige nova prévia.
+  Informar o hash na execução é declaração de revisão/liberação pelo operador,
+  não prova criptográfica de consentimento humano. O protocolo exige autorização
+  real de Luiz antes de o agente executar; conhecer o hash não concede autorização.
+- Execução exige hash correspondente, previsão inteira entre 0 e 20 e caminho
+  de saída novo com pasta pai existente. Validar tudo antes de arquivo ou cliente.
+  Cliente só no ramo de execução; timeout 25s e uma tentativa, sem retry/fallback.
+- JSONL preserva cabeçalho/configuração/previsão, cada saída e resultado parcial
+  com flush, e finalização. Não sobrescreve rodada anterior. Contexto e mapas
+  permanecem no arquivo local; ao Gemini vão só pergunta e alias/texto.
+- Capturar saída estruturada do provedor, resposta da aplicação e exceção apenas
+  como classe/código, sem mensagem/segredo/stack. HTTP/JSON malformado não é
+  recusa correta. Compatibilidade de status não é acerto factual.
+- Revisão semântica fica pendente em todos os casos; nenhuma automação libera
+  a demo ou declara confiabilidade. E20 não chama o gerador. Até 19 chamadas
+  externas por rodada; uma interrupção preserva registros já concluídos.
+
+### Comandos implementados
+
+Prévia local, sem API (PowerShell/Windows):
+
+```powershell
+& .venv/Scripts/python.exe -X utf8 -m src.eval.avaliar_geracao --manifesto data/eval/geracao_casos.json
+```
+
+Após revisão, previsão e autorização real do lote, a execução exige também
+`--executar --aprovacao-sha256 <hash_da_previa> --previsao <inteiro> --saida <arquivo_novo.jsonl>`.
+Usar saída local em pasta existente; exemplo de destino: `.venv/geracao-rodada-01.jsonl`.
+Arquivo existente é preservado e bloqueia execução. A prévia mostra fontes locais,
+mas o cliente recebe somente pergunta e alias/texto.
+
+Executor implementado/testado; gate semântico permanece **pendente** até leitura
+e julgamento das respostas por Luiz. Esta versão registra `erro_integracao.fase`
+como `gerador` ou `validacao_aplicacao`; exceção na validação não vira automaticamente
+falha de disponibilidade da API. Compatibilidade de status é só verificação estrutural.
+
+O ajuste de robustez do núcleo foi autorizado, implementado e testado: status
+que não é string retorna `erro_geracao` antes de consultar os estados permitidos.
+Próximo: Luiz revisa o manifesto/payloads e critérios e registra previsão/liberação antes
+da rodada. Resultados estocásticos são preservados localmente; revisar dados/conteúdo
+antes de versionar e registrar as notas humanas.
 
 Referências: specs 0001/0002/0004, ADR-0006 e `reports/integridade_busca_cache.md`.
