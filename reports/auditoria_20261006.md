@@ -131,3 +131,24 @@ fica fora do commit. Mudanças de outras frentes da base não entram neste push.
 Correções de contrato: `7691d2b` (quatro arquivos de código/testes).
 O hook commit-msg não iniciou dentro do sandbox Windows; o mesmo commit
 foi concluído fora do sandbox com o hook normal, sem desativá-lo.
+
+## Alerta de dependência observado no push
+
+Em 2026-10-06, o GitHub informou o alerta aberto GHSA-rrmf-rvhw-rf47 /
+CVE-2025-3000 para `torch==2.12.1`, afetado segundo o intervalo <=2.12.1.
+Metadados do GitHub classificam como low; a descrição histórica usa a palavra
+critical. Não inferir segurança apenas pela classificação. Patch indicado: 2.13.0.
+Fonte primária: https://github.com/advisories/GHSA-rrmf-rvhw-rf47;
+alerta do repo: https://github.com/luizmaibashi/voc-intelligence-rag-olist/security/dependabot/1.
+
+Superfície informada: corrupção de memória via `torch.jit.script`, ataque local.
+Busca direta em src/tests não encontrou TorchScript, torch.load ou
+trust_remote_code; o projeto consome SentenceTransformer.encode. Isso não prova
+inacessibilidade transitiva na biblioteca. O alerta permanece aberto e o
+requirements não foi alterado sem verificar compatibilidade Windows/Python 3.13,
+SentenceTransformers e identidade dos embeddings. Não há bloqueador de outra
+dependência demonstrado; compatibilidade do patch ainda não foi testada.
+
+Gatilho de revisão: antes da publicação/demo com entrada livre, validar torch
+2.13.0 em ambiente separado, pip check e suíte completa, conferir implicações no
+cache e atualizar o pin se compatível. Sem upgrade ad hoc no ambiente julgado.
