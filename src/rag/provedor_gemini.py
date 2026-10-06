@@ -4,7 +4,7 @@ import json
 from google import genai
 from google.genai import types
 
-MODELO_GERACAO = "gemini-3.5-flash-lite"
+MODELO_GERACAO = "gemini-3.1-flash-lite"
 
 SCHEMA_RESPOSTA = {
     "type": "object",

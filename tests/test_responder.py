@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import duckdb
 import numpy as np
 import pandas as pd
+import pytest
 
 from src.rag.responder import executar_rag, responder  # noqa: E402
 from src.rag.provedor_gemini import GeradorGemini  # noqa: E402
@@ -94,7 +95,11 @@ def test_recusa_nao_exibe_afirmacao_livre_do_modelo():
     assert "30 dias" not in resposta.texto
 
 
-def test_adaptador_envia_contexto_e_schema_sem_rede():
+@pytest.mark.parametrize("modelo,esperado", [
+    (None, "gemini-3.1-flash-lite"),
+    ("gemini-3.5-flash-lite", "gemini-3.5-flash-lite"),
+])
+def test_adaptador_envia_contexto_e_schema_sem_rede(modelo, esperado):
     class Models:
         def generate_content(self, **kwargs):
             self.chamada = kwargs
@@ -104,11 +109,12 @@ def test_adaptador_envia_contexto_e_schema_sem_rede():
         models = Models()
 
     client = Client()
-    saida = GeradorGemini(client=client, contexto_revisado=True)("Qual o prazo oficial?", EVIDENCIAS)
+    argumentos = {} if modelo is None else {"modelo": modelo}
+    saida = GeradorGemini(client=client, contexto_revisado=True, **argumentos)("Qual o prazo oficial?", EVIDENCIAS)
     assert saida["status"] == "sem_evidencia"
     assert '"review_id": "r1"' in client.models.chamada["contents"]
     assert client.models.chamada["config"].response_mime_type == "application/json"
-    assert client.models.chamada["model"] == "gemini-3.5-flash-lite"
+    assert client.models.chamada["model"] == esperado
 
 
 def test_adaptador_exige_revisao_do_contexto_antes_de_enviar():

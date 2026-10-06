@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 
-from src.retrieval.indice import MODELO, carregar_corpus
+from src.retrieval.indice import MODELO
+from src.eval.pool_candidatos import embeddings_docs, textos_distintos
 
 RAIZ = Path(__file__).resolve().parents[2]
 
@@ -44,10 +45,10 @@ def faixa_de_separacao(scores: pd.DataFrame) -> tuple[float, float] | None:
 
 def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")
-    docs = carregar_corpus(RAIZ / "data/processed/corpus_reviews.parquet")
-    vetores = np.load(RAIZ / "data/processed/emb_minilm.npy")
-    perguntas = pd.read_csv(RAIZ / "data/eval/perguntas.csv", sep=";")
+    docs = textos_distintos(RAIZ / "data/processed/corpus_reviews.parquet")
+    perguntas = pd.read_csv(RAIZ / "data/eval/perguntas.csv", sep=";", dtype={"tem_resposta": str})
     modelo = SentenceTransformer(MODELO)
+    vetores = embeddings_docs("minilm", modelo, "", docs.texto.tolist())
     verificar_cache(modelo, docs, vetores)
     q = modelo.encode(perguntas.pergunta.tolist(), normalize_embeddings=True)
     scores = pontuar(perguntas, vetores, q)

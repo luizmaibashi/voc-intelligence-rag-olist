@@ -44,14 +44,17 @@ def buscar(con: duckdb.DuckDBPyConnection, vetor: np.ndarray, k: int = 10,
               FROM avaliacoes
               WHERE (? IS NULL OR nota >= ?) AND (? IS NULL OR nota <= ?)
                 AND (? IS NULL OR situacao_entrega = ?)
+              QUALIFY row_number() OVER (
+                  PARTITION BY lower(texto) ORDER BY score DESC, review_id ASC
+              ) = 1
               ORDER BY score DESC, review_id ASC LIMIT ?"""
     return con.execute(sql, [vetor.tolist(), nota_min, nota_min,
                              nota_max, nota_max, situacao_entrega, situacao_entrega, k]).df()
 
 
 def carregar_corpus(caminho: Path) -> pd.DataFrame:
-    corpus = pd.read_parquet(caminho)
-    return corpus.loc[~corpus.texto.str.lower().duplicated()].reset_index(drop=True)
+    """Preserva metadados de todas as avaliações; a busca agrupa após filtrar."""
+    return pd.read_parquet(caminho).reset_index(drop=True)
 
 
 def gerar_vetores(docs: pd.DataFrame, modelo: SentenceTransformer | None = None) -> np.ndarray:

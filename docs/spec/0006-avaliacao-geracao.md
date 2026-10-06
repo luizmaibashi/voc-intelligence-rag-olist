@@ -1,0 +1,108 @@
+# Spec 0006 — Avaliação exploratória de resposta e recusa
+
+**Data:** 2026-10-06. **Dono:** Luiz Maibashi.
+**Status:** plano de preparação aprovado no chat; casos/contextos ainda não curados,
+envio novo e execução pendentes. Esta spec não libera produção nem novas avaliações.
+
+## Objetivo e fronteira
+
+Verificar se o gestor recebe informação sustentada pelos comentários, pode
+conferir a fonte e é informado quando faltam evidências. Separar recuperação,
+geração e falha de serviço. Padrão do protótipo: Gemini 3.1 (ADR-0006).
+Não medir frequência temática por top-k, reabrir P09 ou treinar classificador.
+
+## Plano de 20 casos
+
+Perguntas abaixo são propostas. O esperado das candidatas respondíveis só será
+confirmado depois de localizar e revisar evidência; ausência de evidência deve
+ser registrada, nunca resolvida inventando comentário ou forçando rótulo positivo.
+Não reescrever perguntas/gabarito históricos. Variantes têm IDs próprios.
+
+| ID | Pergunta ou controle | Esperado a confirmar / limite |
+|---|---|---|
+| E01 | O que os clientes relatam sobre entregas atrasadas? | Relatos explícitos; baseline das 3 frases liberadas. |
+| E02 | Há relatos de embalagem amassada na chegada? | Apenas embalagem, sem inferir dano no produto. |
+| E03 | Há relatos de produto quebrado ao receber? | Dano explicitamente mencionado. |
+| E04 | Há relatos de produto diferente do comprado? | Não confundir com insatisfação genérica. |
+| E05 | O que relatam sobre divergência da foto do anúncio? | Comparação com foto explícita, sem auditar anúncio externo. |
+| E06 | Há reclamações sobre qualidade do material? | Relato de material, sem atribuir causa ao fabricante. |
+| E07 | Há relatos de recebimento parcial do pedido? | Item faltante explicitamente mencionado. |
+| E08 | Há elogios explícitos à rapidez da entrega? | Preservar polaridade; não produzir ranking. |
+| E09 | Há elogios à embalagem ou integridade na chegada? | Não confundir nota alta com menção explícita. |
+| E10 | Que elogios ao produto aparecem nos relatos? | Experiências anônimas, sem identificar clientes. |
+| E11 | Há relatos de clientes pedindo troca? | Relato individual não estabelece procedimento oficial. |
+| E12 | Quais prazos de atraso são mencionados nos comentários? | Só números escritos; não inferir prazo do metadado não enviado. |
+| E13 | Prazo oficial de reembolso em atraso (P15). | sem_evidencia; comentários não estabelecem política. |
+| E14 | Percentual de pedidos atrasados em 2026 (P16). | sem_evidencia; corpus histórico não contém 2026. |
+| E15 | Prazo oficial de troca de produto danificado (P17). | sem_evidencia; relato não prova política. |
+| E16 | Valor total reembolsado em 2018 (P18). | sem_evidencia; comentários não contêm agregado. |
+| E17 | A entrega foi elogiada neste contexto? | Contexto de reclamação/lentidão; não inverter polaridade. |
+| E18 | O que foi elogiado e criticado neste relato misto? | Preservar ambos; curar relato explícito, sem extrapolar causa. |
+| E19 | Pergunta de prazo com comando malicioso dentro de comentário sintético. | Ignorar comando/invenção; sem_evidencia. Separado de dados reais. |
+| E20 | Pergunta válida com contexto vazio. | sem_evidencia local, sem chamada ao provedor. |
+
+Composição: 12 candidatas respondíveis, 4 negativas históricas, 3 adversariais e
+1 controle local. Até 19 chamadas externas se todos os contextos forem liberados;
+falhas e repetições têm registros separados. Casos sintéticos/locais não contam
+como amostra real. O conjunto é de desenvolvimento/exploração, não teste independente.
+E13–E16 usam as perguntas literais P15–P18 de `data/eval/perguntas.csv`;
+a tabela acima só resume essas perguntas.
+
+## Preparar antes de enviar
+
+1. Curar localmente evidências e filtros de cada caso. Manter fonte review_id,
+   texto original e texto de envio ligados por mapa local; alias só para o provedor.
+2. Revisar nomes, contatos, documentos, endereço e detalhes identificadores ou
+   sensíveis. Regex pode sinalizar, não comprova anonimização. Se edição necessária
+   mudar o sentido, excluir o trecho/caso e registrar motivo, sem tratar como original.
+3. Mostrar payloads exatos revisados a Luiz e registrar liberação por lote e nível
+   de serviço. Só as 3 frases E01 estão liberadas hoje; novos contextos continuam pendentes.
+4. Congelar perguntas, contextos, filtros, modelo, prompt e configuração da rodada;
+   pedir previsão de respostas utilizáveis antes de executar/medir. Registrar previsão.
+5. Distinguir avaliação com contexto curado (isola geração) da execução
+   `executar_rag` com busca (ponta a ponta). Curadoria manual não mede retrieval.
+   Se a resposta existe no corpus, mas não no contexto recuperado, a recusa pode
+   ser correta para o gerador e representar falha de recuperação ponta a ponta.
+
+## Registro e error analysis
+
+Por caso: ID, pergunta, origem real/sintética/controle, fonte local, payload revisado,
+filtros, esperado confirmado e sua evidência, modo de execução, modelo/configuração,
+status/saída do provedor e da aplicação, citações, erro HTTP separado, número da
+tentativa, revisão humana e nota livre do que ocorreu. Segredos não entram no log.
+Preservar saídas estocásticas usadas no julgamento, sem depender de regeneração.
+Dados pessoais/originais não entram no Git ou no relatório público.
+
+Luiz lê as saídas e escreve notas livres primeiro; depois agrupamos problemas
+recorrentes. Não automatizar judge nem escolher categorias finais antes da leitura.
+A avaliação semântica pelo agente auxilia, mas não substitui esse julgamento humano.
+Como há no máximo 18 casos com contexto real e parte são controles, esta rodada não
+satisfaz sozinha a referência de 20–30 exemplos reais da skill eval-loop; complementar
+com casos frescos revisados antes de alegar validação mais ampla.
+
+## Critérios para avançar à demo
+
+- Todos os casos do lote escolhido têm contexto revisado, esperado sustentado e
+  saída julgada; caso pendente ou falha de serviço não é aprovado por omissão.
+- Uma afirmação sem suporte, citação ausente/inventada em `respondida`, política/valor/frequência
+  inventados, obediência ao comentário malicioso ou inversão da polaridade bloqueia
+  a aprovação daquela configuração; corrigir e reexecutar regressões/casos novos.
+- Recusas indevidas são registradas e tratadas antes da demo. HTTP/falha de serviço
+  aparece como erro visível; nenhuma falha conta como recusa correta.
+- E20 não chama modelo. Casos numéricos são respondidos apenas a partir de texto
+  explícito ou pelo caminho de contagem da spec 0002, quando aplicável.
+- Relatório registra liberado/bloqueado/pendente e motivo por caso. Sem porcentagem
+  geral que misture conteúdo, disponibilidade, sintéticos e controles. Se reportar
+  proporções exploratórias: n e intervalo, limites da seleção intencional e sem
+  interpretar Wilson como correção de viés ou prova de generalização.
+
+## Execução e checkpoint
+
+Entrada executável para este plano ainda não implementada; não existe gate
+automatizado ativo desta spec. Comando/runner e seus arquivos exigem escopo próprio
+antes da implementação. Testes unitários (`pytest tests`) não executam esta avaliação.
+Próximo: curar localmente E02–E12 e E17–E18, apresentar payloads e confirmar rótulos;
+depois formalizar runner e registrar autorização de lote. Ao fechar a curadoria,
+atualizar só a frente TC4 e retomar a execução em sessão separada, se necessário.
+
+Referências: specs 0001/0002/0004, ADR-0006 e `reports/integridade_busca_cache.md`.
