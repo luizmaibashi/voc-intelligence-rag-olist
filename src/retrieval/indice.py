@@ -35,10 +35,14 @@ def buscar(con: duckdb.DuckDBPyConnection, vetor: np.ndarray, k: int = 10,
     vetor = np.asarray(vetor, dtype=np.float32)
     if vetor.shape != (DIM,) or not np.isfinite(vetor).all() or not np.isclose(np.linalg.norm(vetor), 1, atol=1e-4):
         raise ValueError("pergunta deve ter vetor normalizado de 384 dimensões")
-    if (k < 1 or (nota_min is not None and not 1 <= nota_min <= 5)
-            or (nota_max is not None and not 1 <= nota_max <= 5)
+    if (type(k) is not int or k < 1
+            or (nota_min is not None and (type(nota_min) is not int or not 1 <= nota_min <= 5))
+            or (nota_max is not None and (type(nota_max) is not int or not 1 <= nota_max <= 5))
             or (nota_min is not None and nota_max is not None and nota_min > nota_max)):
         raise ValueError("k ou intervalo de nota inválido")
+    if situacao_entrega is not None and (not isinstance(situacao_entrega, str)
+            or situacao_entrega not in {"atrasado", "no_prazo", "nao_entregue"}):
+        raise ValueError("situação de entrega inválida")
     sql = f"""SELECT review_id, texto, nota, situacao_entrega,
                      array_cosine_similarity(vetor, ?::FLOAT[{DIM}]) AS score
               FROM avaliacoes

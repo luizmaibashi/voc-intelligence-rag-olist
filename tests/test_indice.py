@@ -86,3 +86,29 @@ def test_representante_de_texto_repetido_prioriza_score_antes_do_id():
         obtido = buscar(con, vetor(0), k=2)
         assert obtido.review_id.tolist() == ["z", "b"]
         assert obtido.score.iloc[0] == pytest.approx(1.)
+
+
+@pytest.mark.parametrize("argumentos", [
+    {"k": True}, {"k": 1.5}, {"k": "2"}, {"k": 0},
+    {"nota_min": True}, {"nota_min": 1.5}, {"nota_min": "1"}, {"nota_min": 0},
+    {"nota_max": True}, {"nota_max": 4.5}, {"nota_max": "5"}, {"nota_max": 6},
+    {"nota_min": 5, "nota_max": 1},
+    {"situacao_entrega": "atrasadoo"}, {"situacao_entrega": True},
+    {"situacao_entrega": []},
+])
+def test_busca_rejeita_argumentos_fora_do_dominio(argumentos):
+    with duckdb.connect() as con:
+        with pytest.raises(ValueError):
+            buscar(con, vetor(0), **argumentos)
+
+
+@pytest.mark.parametrize("situacao", ["atrasado", "no_prazo", "nao_entregue"])
+def test_busca_aceita_todas_as_situacoes_do_corpus(situacao):
+    docs = pd.DataFrame({"review_id": ["a", "b", "c"], "texto": ["a", "b", "c"],
+                         "nota": [1, 5, 4],
+                         "situacao_entrega": ["atrasado", "no_prazo", "nao_entregue"],
+                         "categorias": ["x"] * 3})
+    with duckdb.connect() as con:
+        criar_indice(con, docs, np.stack([vetor(0)] * 3))
+        obtido = buscar(con, vetor(0), situacao_entrega=situacao)
+    assert obtido.review_id.tolist() == docs.loc[docs.situacao_entrega == situacao, "review_id"].tolist()

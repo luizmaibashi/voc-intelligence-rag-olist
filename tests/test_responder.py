@@ -69,6 +69,21 @@ def test_id_valido_e_inventado_juntos_falham_fechado():
     assert responder("Pergunta", EVIDENCIAS, gerar).status == "erro_geracao"
 
 
+@pytest.mark.parametrize("citacoes", [["r999"], ["r1", "r999"], [{}], [None]])
+def test_recusa_com_citacao_invalida_falha_fechado(citacoes):
+    gerar = lambda *_: {"status": "sem_evidencia", "texto": "Sem suporte", "review_ids": citacoes}
+    assert responder("Pergunta", EVIDENCIAS, gerar).status == "erro_geracao"
+
+
+@pytest.mark.parametrize("citacoes", [[], ["r1"]])
+def test_recusa_com_citacoes_validas_preserva_mensagem_generica(citacoes):
+    gerar = lambda *_: {"status": "sem_evidencia", "texto": "Limite do contexto", "review_ids": citacoes}
+    resposta = responder("Pergunta", EVIDENCIAS, gerar)
+    assert resposta.status == "sem_evidencia"
+    assert resposta.texto == "As avaliações recuperadas não sustentam a resposta solicitada."
+    assert resposta.review_ids == []
+
+
 def test_falha_do_modelo_nao_vaza_detalhes():
     def gerar(*_):
         raise RuntimeError("segredo-no-erro")
@@ -179,3 +194,25 @@ def test_pipeline_sem_resultados_recusa_sem_gerar():
         raise AssertionError("não chamar sem evidências")
 
     assert executar_rag("Houve elogio?", con, Modelo(), gerar, nota_min=5).status == "sem_evidencia"
+
+
+def test_pipeline_filtro_invalido_falha_sem_gerar():
+    docs = pd.DataFrame({"review_id": ["r1"], "texto": ["Chegou bem"], "nota": [5],
+                         "situacao_entrega": ["no_prazo"], "categorias": ["vaso"]})
+    vetor = np.zeros((1, DIM), dtype=np.float32)
+    vetor[0, 0] = 1
+    chamadas = []
+
+    class Modelo:
+        def encode(self, *_args, **_kwargs):
+            return vetor[0]
+
+    def gerar(*_args):
+        chamadas.append(True)
+        return {"status": "sem_evidencia", "texto": "Sem suporte", "review_ids": []}
+
+    with duckdb.connect() as con:
+        criar_indice(con, docs, vetor)
+        resposta = executar_rag("Houve elogio?", con, Modelo(), gerar, situacao_entrega="atrasadoo")
+    assert resposta.status == "erro_geracao"
+    assert chamadas == []
