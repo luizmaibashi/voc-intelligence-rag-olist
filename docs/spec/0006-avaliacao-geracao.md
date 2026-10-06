@@ -3,8 +3,9 @@
 **Data:** 2026-10-06. **Dono:** Luiz Maibashi.
 **Status:** curadoria proposta e implementação do executor aprovadas no chat;
 lote E01–E20 autorizado; rodada 02 julgada por Luiz em 2026-10-06.
-Rodada 03 executada e julgada: 8 falhas de serviço e 12 saídas aprovadas
-por Luiz. Gate da demo bloqueado; histórico da rodada 02 preservado abaixo.
+Rodada 04 executada e julgada: 19 saídas aprovadas por Luiz; E05 falhou
+após duas tentativas. Observações E03/E07 revisadas conforme critérios.
+Gate da demo bloqueado por E05; histórico preservado abaixo.
 Autorização restrita aos payloads deste lote no Gemini gratuito; não libera produção nem outros comentários.
 
 ## Objetivo e fronteira
@@ -317,3 +318,69 @@ Isso não torna a geração determinística. Tema explicado; retenção não ava
 
 Prévia optativa: `python -m src.eval.avaliar_geracao --manifesto data/eval/geracao_casos.json --repetir-transitorios`.
 Na execução, acrescentar a flag, hash desta prévia, previsão nova e saída nova.
+
+## Rodada 04 — repetição optativa no lote completo
+
+Luiz solicitou continuar após commit/push e previu 18 resultados utilizáveis
+em 20 antes da execução. Código: 218c6a6. Modelo/prompt/contextos autorizados
+preservados; política ADR-0007 (até 2 tentativas, espera 2s, SDK=1).
+Hash do lote/configuração: 8953bffc2db35a5ff48371763c97238bf04eb16ad4424564f30ba7c6afc9ccd0.
+Destino novo: .venv/geracao-rodada-20261006-04.jsonl. Até 38 chamadas externas;
+E20 local. Preservar cada tentativa e saídas anteriores; julgamento humano
+desta rodada pendente. Execução não libera a demo automaticamente.
+
+### Resultado e observações da rodada 04
+
+20 casos finalizados; 25 chamadas externas (19 primeiras + 6 repetições).
+E20 teve zero chamadas. Previsão de Luiz: 18 utilizáveis. Há 19 saídas
+sem erro de serviço, ainda não 19 acertos confirmados humanamente.
+
+- E01, E13, E16, E17 e E19 recuperaram na segunda tentativa; primeira falha
+  e segunda saída preservadas. Observação direta de cinco recuperações,
+  sem estimar ganho causal geral contra outra rodada em momento diferente.
+- E05: ReadTimeout na primeira, HTTP 503 na segunda; limite respeitado,
+  sem terceira chamada. Gate bloqueado por falta de saída julgável.
+- 16 saídas da aplicação idênticas a aprovadas nas rodadas 02/03:
+  E01/E02/E04/E08–E20. Manutenção de aprovação nesta rodada pendente.
+- Novas redações: E03, E06 e E07. E03 pluraliza clientes a partir de um único
+  comentário. E06 mantém avaliação de material atribuída ao cliente.
+  E07 transforma pedido com item faltante em item que chegou incompleto:
+  possível alteração da unidade do problema. Registrar julgamento humano,
+  sem aprovar pelo status ou corrigir a saída histórica.
+- Origem: 17 saídas com contexto real, E19 sintético, E20 local. E05 real
+  falhou. Não misturar serviço, conteúdo e controles numa taxa geral.
+
+Captura original intacta no JSON de evidências; notas do agente são auxiliares
+e não substituem o julgamento de Luiz. Sem alteração de código/prompt nesta rodada.
+
+### Julgamento humano parcial da rodada 04
+
+Luiz instruiu aprovar somente E07. Registrado como utilizável, preservando a
+observação do agente sobre pedido com item faltante versus item incompleto.
+E03/E06 e as 16 saídas idênticas seguem pendentes nesta rodada; não inferir
+reprovação nem manutenção automática da aprovação anterior. E05 permanece
+falha de serviço. Gate bloqueado: 1 aprovado, 18 pendentes, 1 falha de serviço.
+
+### Revisão das observações após contestação de Luiz
+
+Luiz pediu revisão, sem reprovar E03/E06. Comparação direta com critérios
+e saídas aprovadas da rodada 02: plural genérico de E03 responde à pergunta
+existencial e já era aceito no baseline. Não há contagem/frequência/causa
+inventada; reprovação apenas pelo plural adicionaria exigência não confirmada.
+Recomendação revisada: aprovar E03/E06, aguardando decisão humana.
+E07 confirma recebimento parcial na primeira frase; item incompleto é redação
+ambígua em relação a pedido faltando um item, sem nomear item ou causa.
+Aprovação humana de E07 permanece; observação de precisão preservada, sem
+tratá-la como reprovação obrigatória. Não modificar capturas nem votos anteriores.
+
+### Veredito humano final da rodada 04
+
+Luiz confirmou E03/E06 e a manutenção das 16 saídas idênticas às já aprovadas,
+após revisão das observações. Com E07 previamente aprovado: 19 utilizáveis
+(17 com contexto real, E19 sintético e E20 local) e E05 falha de serviço.
+Previsão anterior: 18 utilizáveis. Cinco casos recuperaram na segunda
+tentativa; não inferir ganho causal geral pela comparação entre rodadas.
+Gate **bloqueado** por E05. Próximo: diagnóstico focado/reavaliação desse
+mesmo caso, sem novo contexto ou aumento de tentativas, com previsão antes
+de chamadas e preservação de todas as falhas. O executor padrão ainda exige
+20 casos; não adulterar o manifesto para executar subconjunto.
