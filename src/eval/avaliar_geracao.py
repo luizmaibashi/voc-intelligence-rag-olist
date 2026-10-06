@@ -15,6 +15,7 @@ from pathlib import Path
 
 from src.rag.provedor_gemini import GeradorGemini, INSTRUCAO, MODELO_GERACAO, SCHEMA_RESPOSTA
 from src.rag.responder import Resposta, responder
+from src.rag.tentativas import GeradorComTentativas, politica_tentativas
 
 
 def _exigir(condicao: bool) -> None:
@@ -90,18 +91,26 @@ def configuracao_geracao() -> dict:
             "attempts": 1, "versao_sdk": version("google-genai")}
 
 
+def configuracao_execucao(*, repetir_transitorios: bool = False) -> dict:
+    if type(repetir_transitorios) is not bool:
+        raise ValueError("Opção de repetição precisa ser booleana.")
+    config = configuracao_geracao()
+    return {**config, "politica_repeticao": politica_tentativas()} if repetir_transitorios else config
+
+
 def _canonico(valor) -> str:
     return json.dumps(valor, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
 
 
-def hash_lote(manifesto: dict) -> str:
+def hash_lote(manifesto: dict, *, repetir_transitorios: bool = False) -> str:
     validar_manifesto(manifesto)
     return hashlib.sha256(_canonico({"manifesto": manifesto, "configuracao":
-                                   configuracao_geracao()}).encode("utf-8")).hexdigest()
+                                   configuracao_execucao(repetir_transitorios=repetir_transitorios)}).encode("utf-8")).hexdigest()
 
 
-def previa(manifesto: dict) -> dict:
-    return {"tipo": "previa", "hash_lote": hash_lote(manifesto), "configuracao": configuracao_geracao(),
+def previa(manifesto: dict, *, repetir_transitorios: bool = False) -> dict:
+    return {"tipo": "previa", "hash_lote": hash_lote(manifesto, repetir_transitorios=repetir_transitorios),
+            "configuracao": configuracao_execucao(repetir_transitorios=repetir_transitorios),
             "manifesto": manifesto, "aviso": "Proposta pendente: o hash declara autorização manual; "
             "não comprova revisão nem libera este lote. Apenas pergunta e evidências vão ao provedor."}
 
@@ -129,11 +138,11 @@ def _saida_serializavel(saida):
 
 
 def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
-             saida: Path, gerar=None) -> None:
+             saida: Path, gerar=None, repetir_transitorios: bool = False) -> None:
     # Cópia congelada impede alteração do lote durante a rodada.
     validar_manifesto(manifesto)
     manifesto = json.loads(_canonico(manifesto))
-    digest = hash_lote(manifesto)
+    digest = hash_lote(manifesto, repetir_transitorios=repetir_transitorios)
     if not isinstance(aprovacao_sha256, str) or aprovacao_sha256 != digest:
         raise ValueError("Hash de aprovação não corresponde ao lote.")
     if type(previsao) is not int or not 0 <= previsao <= 20:
@@ -148,7 +157,8 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
         def registrar(valor):
             arquivo.write(_canonico(valor) + "\n")
             arquivo.flush()
-        registrar({"tipo": "cabecalho", "hash_lote": digest, "configuracao": configuracao_geracao(),
+        registrar({"tipo": "cabecalho", "hash_lote": digest,
+                   "configuracao": configuracao_execucao(repetir_transitorios=repetir_transitorios),
                    "manifesto": manifesto, "previsao": previsao,
                    "utc": datetime.now(timezone.utc).isoformat()})
         try:
@@ -156,23 +166,37 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
                 gerar, client = _criar_gerador()
             for caso in manifesto["casos"]:
                 captura = {"saida_provedor": None, "erro_integracao": None}
+                falha_registro = []
+                def registrar_tentativa(evento):
+                    try:
+                        registrar({"tipo": "tentativa", "id": caso["id"], **evento})
+                    except Exception as erro:
+                        falha_registro.append(erro)
+                        raise
+                gerar_caso = (GeradorComTentativas(gerar, registrar_tentativa)
+                              if repetir_transitorios else gerar)
                 def capturar(pergunta, evidencias):
                     try:
-                        resultado = gerar(pergunta, evidencias)
+                        resultado = gerar_caso(pergunta, evidencias)
                         captura["saida_provedor"] = _saida_serializavel(resultado)
                         return resultado
                     except Exception as erro:
-                        captura["erro_integracao"] = _erro_seguro(erro, "gerador")
+                        if not falha_registro:
+                            captura["erro_integracao"] = _erro_seguro(erro, "gerador")
                         raise
                 try:
                     resposta = responder(caso["pergunta"], caso["evidencias"], capturar)
                 except Exception as erro:
                     captura["erro_integracao"] = _erro_seguro(erro, "validacao_aplicacao")
                     resposta = Resposta("erro_geracao", "Saída inválida do modelo.")
+                if falha_registro:
+                    # responder captura falhas do gerador; falha do registro encerra a rodada.
+                    raise falha_registro[0]
                 registrar({"tipo": "caso", "id": caso["id"], **captura,
                            "resposta_aplicacao": asdict(resposta),
                            "status_esperado_compativel": resposta.status in caso["status_esperados"],
-                           "julgamento_semantico": "pendente", "tentativa": 1})
+                           "julgamento_semantico": "pendente",
+                           "tentativa": gerar_caso.tentativas if repetir_transitorios else 1})
             registrar({"tipo": "fim", "casos_registrados": len(manifesto["casos"])})
         finally:
             if client is not None:
@@ -183,6 +207,7 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifesto", required=True, type=Path)
     parser.add_argument("--executar", action="store_true")
+    parser.add_argument("--repetir-transitorios", action="store_true")
     parser.add_argument("--aprovacao-sha256")
     parser.add_argument("--previsao", type=int)
     parser.add_argument("--saida", type=Path)
@@ -193,9 +218,11 @@ def main(argv=None) -> int:
             if argumentos.saida is None:
                 raise ValueError("Informe saída nova para executar.")
             executar(manifesto, aprovacao_sha256=argumentos.aprovacao_sha256,
-                     previsao=argumentos.previsao, saida=argumentos.saida)
+                     previsao=argumentos.previsao, saida=argumentos.saida,
+                     repetir_transitorios=argumentos.repetir_transitorios)
         else:
-            print(json.dumps(previa(manifesto), ensure_ascii=False, indent=2))
+            print(json.dumps(previa(manifesto, repetir_transitorios=argumentos.repetir_transitorios),
+                             ensure_ascii=False, indent=2))
         return 0
     except (OSError, ValueError, TypeError):
         print("Falha: confira contrato, aprovação, previsão e arquivo de saída.", file=sys.stderr)

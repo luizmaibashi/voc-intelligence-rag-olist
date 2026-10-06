@@ -2,8 +2,9 @@
 
 **Data:** 2026-10-06. **Dono:** Luiz Maibashi.
 **Status:** curadoria proposta e implementação do executor aprovadas no chat;
-lote E01–E20 autorizado, executado e revisado por Luiz em 2026-10-06.
-Gate da demo bloqueado por E05/E13 (falhas de serviço).
+lote E01–E20 autorizado; rodada 02 julgada por Luiz em 2026-10-06.
+Rodada 03 executada e julgada: 8 falhas de serviço e 12 saídas aprovadas
+por Luiz. Gate da demo bloqueado; histórico da rodada 02 preservado abaixo.
 Autorização restrita aos payloads deste lote no Gemini gratuito; não libera produção nem outros comentários.
 
 ## Objetivo e fronteira
@@ -150,8 +151,9 @@ Usar saída local em pasta existente; exemplo de destino: `.venv/geracao-rodada-
 Arquivo existente é preservado e bloqueia execução. A prévia mostra fontes locais,
 mas o cliente recebe somente pergunta e alias/texto.
 
-Executor implementado/testado; nesta rodada o julgamento humano está concluído
-e o gate permanece **bloqueado** pelas falhas de serviço E05/E13. Esta versão registra `erro_integracao.fase`
+Executor implementado/testado; o julgamento da rodada 02 foi concluído.
+Na rodada 03, as 12 saídas disponíveis foram aprovadas por Luiz e o gate continua
+**bloqueado** pelas oito falhas de serviço registradas. Esta versão registra `erro_integracao.fase`
 como `gerador` ou `validacao_aplicacao`; exceção na validação não vira automaticamente
 falha de disponibilidade da API. Compatibilidade de status é só verificação estrutural.
 
@@ -191,3 +193,127 @@ intactos na `.venv`; a cópia revisada versionada preserva evidência entre máq
 Auditoria do dia e correções posteriores: `../../reports/auditoria_20261006.md`.
 A rodada capturada antecede as correções de contrato da auditoria; seus resultados
 não serão apresentados como avaliação executada com o código corrigido.
+
+## Nova rodada com contratos corrigidos — 2026-10-06
+
+Luiz solicitou continuar e previu 18 resultados utilizáveis em 20 antes
+da execução. Lote autorizado e configuração preservados sob o mesmo hash
+`9d3cc1cf2fe5db9b2305573fe1112029e4ab35a70a7dd351ca84cc938b287b3c`.
+Código da rodada: `b842148`; inclui correções de citações nas recusas e filtros.
+Destino novo: `.venv/geracao-rodada-20261006-03.jsonl`. Até 19 chamadas
+externas, E20 local, timeout 25s, uma tentativa por caso, sem fallback.
+Comparação E05/E13 e regressões concluída; julgamento humano registrado abaixo.
+
+### Resultado da rodada 03
+
+Configuração/payloads conferem com a rodada 02; finalização com 20 registros.
+Previsão: 18 utilizáveis. Observado: 12 saídas aprovadas por Luiz e
+8 falhas de serviço; a aprovação é humana, não inferida do status.
+
+- HTTP 503: E02, E03, E08, E09, E12, E14.
+- ReadTimeout: E07, E10.
+- E05 respondeu com citação à divergência da foto; E13 recusou a política
+  oficial ausente. Luiz aprovou ambos após explicação detalhada no chat.
+- E01, E04, E06, E11, E15–E20 têm saída da aplicação exatamente igual à
+  aprovada na rodada 02; a aprovação foi mantida na confirmação do chat.
+  Igualdade estrutural registrada, sem novo judge automático.
+- São 10 saídas com contexto real, 1 sintética e 1 local. As oito falhas
+  pertencem a casos de contexto real. Casos de falha mudaram entre rodadas;
+  não atribuir isso a uma categoria semântica ou ao bug corrigido sem evidência.
+- Gate **bloqueado**: oito casos sem saída julgável. Próximo: diagnóstico
+  de disponibilidade com duas consultas sintéticas, após previsão de Luiz,
+  antes de repetir lote real ou alterar modelo/timeout.
+
+Capturas das três tentativas e comparação por caso preservadas em
+`../../reports/geracao_20261006_evidencias.json`. A rodada 03 usa `b842148`;
+API, configuração e autorização iguais, sem retry/fallback. Nenhum comentário
+novo ou não autorizado enviado; nenhuma mudança de código nesta etapa.
+
+### Diagnóstico sintético posterior — 2026-10-06
+
+Luiz previu 2 resultados utilizáveis em 2 antes da execução. Mesmo modelo,
+configuração, SDK e código b842148; uma tentativa por consulta, sem busca.
+Contexto inventado: “A entrega chegou dois dias depois do prazo previsto.”
+
+- D01 perguntou quantos dias de atraso eram mencionados: ServerError HTTP 503,
+  sem saída do modelo. Não é falha de retrieval ou recusa semântica.
+- D02 perguntou prazo oficial de reembolso: retornou sem_evidencia, explicando
+  que o comentário não informa política. Aplicação exibiu mensagem genérica.
+- Uma consulta retornou sem erro de serviço, outra falhou. Não misturar este
+  diagnóstico sintético com os 20 casos reais/sintéticos/locais da rodada 03.
+
+Fonte oficial: https://ai.google.dev/gemini-api/docs/generate-content/api-errors
+classifica 503 como indisponibilidade/sobrecarga temporária. A orientação em
+https://ai.google.dev/gemini-api/docs/troubleshooting recomenda backoff e limite
+de tentativas para erros transitórios. Não demonstramos incidente global,
+limite de conta ou causa dos timeouts; não atribuir 503 a quota sem evidência.
+
+Próxima decisão: testar retry explícito e limitado para erro transitório,
+com cada tentativa preservada e latência/custo delimitados, antes de considerar
+troca de modelo/provedor. Não implementado nem habilitado por este diagnóstico;
+alterar a política exige spec/configuração/hash e previsão novos.
+Gate da demo continua bloqueado pelas oito falhas da rodada 03.
+Captura e configuração do diagnóstico preservadas no JSON de evidências.
+
+## Contrato da repetição optativa — ADR-0007
+
+Escopo autorizado para implementação: `src/rag/tentativas.py`,
+`tests/test_tentativas.py`, `src/eval/avaliar_geracao.py`,
+`tests/test_avaliar_geracao.py`, esta spec, ADR-0007, evidências e bridge.
+Gerador Gemini, prompt, modelo, responder, corpus e comentários não mudam.
+
+- Default conserva uma tentativa e configuração/hash legados. A flag
+  `--repetir-transitorios` exige hash de prévia correspondente ao modo novo.
+- Controlador reutilizável: callable gerador + callback de registro;
+  sono/relógio injetáveis para teste. Uma repetição após 2s, no máximo duas
+  tentativas, para APIError Google HTTP 408/429/500/502/503/504 ou erros httpx
+  TimeoutException/NetworkError/RemoteProtocolError. Tipos locais de erro não
+  entram por terem atributo `code` semelhante. Não repetir qualquer Exception.
+- SDK attempts=1, timeout 25s. Hash do modo novo inclui política de repetição
+  (códigos/tipos, duas tentativas, espera 2s), além da configuração antiga.
+- Registro `tipo: tentativa` imediatamente após cada chamada (flush), com ID,
+  número, saída serializável, erro classe/código/fase, duração em ms, espera
+  planejada e se haverá repetição. Registro de uma falha não pode desaparecer
+  quando a segunda tentativa retorna. Se o callback falhar, parar; não repetir.
+- Registro final de caso no modo novo usa número real de chamadas, E20=0.
+  Falha final conserva erro visível; sucesso após retry limpa só o erro final,
+  mantendo os registros anteriores. Recusa/saída inválida não gera outra chamada.
+- Registro/protocolo não libera semântica: julgamento permanece pendente.
+  Interrupção e saída existente preservam arquivos. Default não acrescenta
+  registros intermediários nem quebra o contrato das capturas anteriores.
+- Tests locais sem API e diagnóstico com dois comentários sintéticos. Nova
+  previsão de Luiz antes da medição. Sem lote real novo nesta implementação.
+- Próximo gate: conferir efeito observado em tentativas, falhas e espera;
+  sucesso em dois casos não comprova confiabilidade geral nem libera a demo.
+
+Previsão confirmada por Luiz antes do diagnóstico com repetição: 2 resultados
+utilizáveis em 2 consultas sintéticas (D01/D02), no máximo quatro chamadas.
+Implementação/auditoria/testes concluídos; diagnóstico executado, registro abaixo.
+
+### Verificação da repetição e diagnóstico
+
+Implementado por sonnet-medium nos quatro arquivos previstos; diff revisado
+pelo principal. Red: 4 falhas, 27 passes e 22 erros pelo módulo novo ausente.
+Um wrapper de Path.open no teste assumiu mode posicional; corrigido para aceitar
+mode keyword. Focal final: 54 passes. Suíte completa: 201 passes, FutureWarning
+como erro, basetemp novo na .venv; sem API nos testes. SDK attempts=1 conferido.
+Hash legado real preservado: 9d3cc1cf2fe5db9b2305573fe1112029e4ab35a70a7dd351ca84cc938b287b3c.
+Hash E01–E20 com repetição: 8953bffc2db35a5ff48371763c97238bf04eb16ad4424564f30ba7c6afc9ccd0.
+Não executar o lote real com esta flag sem previsão e revisão da configuração.
+
+Diagnóstico sintético novo: previsão 2/2, D01 respondeu dois dias com citação e
+D02 recusou prazo oficial ausente. Ambos retornaram na primeira tentativa:
+duas chamadas, nenhuma espera/repetição acionada. Não declarar ganho de
+confiabilidade da política a partir deste ensaio; sua recuperação foi testada
+localmente com falhas simuladas, não observada na API neste diagnóstico.
+Hash sintético: 77615e70843bd372bdc0bad836051277329a4ed9f72ab801d485de7ed8e21813.
+Captura `.venv/diagnostico-api-20261006-02.jsonl` preservada no JSON versionável,
+com digest dos arquivos Python usados. Luiz aprovou D01/D02 no chat em
+2026-10-06 e solicitou commit/push. Gate continua bloqueado pelas oito falhas reais da rodada 03.
+
+Explicação do fluxo a Luiz: SDK=1 e controlador<=2 limitam a duas chamadas;
+SDK=2 e controlador=2 poderiam gerar quatro chamadas e mascarar consumo/espera.
+Isso não torna a geração determinística. Tema explicado; retenção não avaliada.
+
+Prévia optativa: `python -m src.eval.avaliar_geracao --manifesto data/eval/geracao_casos.json --repetir-transitorios`.
+Na execução, acrescentar a flag, hash desta prévia, previsão nova e saída nova.

@@ -276,3 +276,107 @@ def test_hash_canonico_preserva_chaves_mas_registra_ordem_de_casos(manifesto):
     assert avaliacao.hash_lote(inverter_chaves(manifesto)) == original
     manifesto["casos"] = list(reversed(manifesto["casos"]))
     assert avaliacao.hash_lote(manifesto) != original
+
+
+def test_previa_optin_muda_hash_e_hash_legado_bloqueia_execucao(manifesto, tmp_path, monkeypatch):
+    antigo = avaliacao.hash_lote(manifesto)
+    nova = avaliacao.previa(manifesto, repetir_transitorios=True)
+    assert nova["hash_lote"] != antigo
+    assert nova["configuracao"]["attempts"] == 1
+    assert nova["configuracao"]["politica_repeticao"]["max_tentativas"] == 2
+    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: pytest.fail("cliente criado"))
+    saida = tmp_path / "bloqueado.jsonl"
+    with pytest.raises(ValueError, match="Hash"):
+        avaliacao.executar(manifesto, aprovacao_sha256=antigo, previsao=10,
+                          saida=saida, repetir_transitorios=True)
+    assert not saida.exists()
+    assert avaliacao.hash_lote(manifesto, repetir_transitorios=False) == antigo
+
+
+def test_rodada_optin_preserva_tentativas_e_numero_real(manifesto, tmp_path, monkeypatch):
+    import httpx
+    from src.rag import tentativas
+    esperas = []
+    monkeypatch.setattr(tentativas.time, "sleep", esperas.append)
+    chamadas = {}
+
+    def gerar(_pergunta, evidencias):
+        alias = evidencias[0]["review_id"]
+        chamadas[alias] = chamadas.get(alias, 0) + 1
+        if alias in {"caso-1", "caso-2"} and (alias == "caso-2" or chamadas[alias] == 1):
+            raise httpx.ReadTimeout("SEGREDO")
+        return {"status": "respondida", "texto": "Texto sintético", "review_ids": [alias]}
+
+    saida = tmp_path / "retry.jsonl"
+    avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto, repetir_transitorios=True),
+                      previsao=10, saida=saida, gerar=gerar, repetir_transitorios=True)
+    bruto = saida.read_text(encoding="utf-8")
+    registros = [json.loads(l) for l in bruto.splitlines()]
+    eventos = [r for r in registros if r["tipo"] == "tentativa"]
+    casos = {r["id"]: r for r in registros if r["tipo"] == "caso"}
+    assert len(eventos) == 21
+    assert sum(chamadas.values()) == 21
+    assert esperas == [2, 2]
+    assert casos["E01"]["tentativa"] == 2
+    assert casos["E01"]["erro_integracao"] is None
+    assert casos["E01"]["resposta_aplicacao"]["status"] == "respondida"
+    assert casos["E02"]["tentativa"] == 2
+    assert casos["E02"]["erro_integracao"]["classe"] == "ReadTimeout"
+    assert casos["E02"]["resposta_aplicacao"]["status"] == "erro_geracao"
+    assert casos["E20"]["tentativa"] == 0
+    assert not any(e["id"] == "E20" for e in eventos)
+    assert eventos[0]["erro_integracao"]["classe"] == "ReadTimeout"
+    assert registros[1]["tipo"] == registros[2]["tipo"] == "tentativa"
+    assert registros[-1]["casos_registrados"] == 20
+    assert "SEGREDO" not in bruto
+
+
+def test_cli_previa_optin_sem_cliente(manifesto, tmp_path, monkeypatch, capsys):
+    caminho = tmp_path / "manifesto.json"
+    caminho.write_text(json.dumps(manifesto), encoding="utf-8")
+    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: pytest.fail("cliente criado"))
+    assert avaliacao.main(["--manifesto", str(caminho), "--repetir-transitorios"]) == 0
+    previa = json.loads(capsys.readouterr().out)
+    assert previa["hash_lote"] == avaliacao.hash_lote(manifesto, repetir_transitorios=True)
+
+
+def test_falha_registro_optin_para_executor_sem_proximo_caso(manifesto, tmp_path, monkeypatch):
+    import httpx
+    chamadas = []
+    caminho = tmp_path / "parcial.jsonl"
+    original = Path.open
+
+    class Arquivo:
+        def __init__(self, real):
+            self.real = real
+
+        def __enter__(self):
+            self.real.__enter__()
+            return self
+
+        def __exit__(self, *args):
+            return self.real.__exit__(*args)
+
+        def write(self, texto):
+            if json.loads(texto)["tipo"] == "tentativa":
+                raise OSError("Registro indisponível")
+            return self.real.write(texto)
+
+        def flush(self):
+            return self.real.flush()
+
+    def abrir(self, *args, **kwargs):
+        arquivo = original(self, *args, **kwargs)
+        modo = args[0] if args else kwargs.get("mode", "r")
+        return Arquivo(arquivo) if self == caminho and modo == "x" else arquivo
+
+    def gerar(*_args):
+        chamadas.append(True)
+        raise httpx.ReadTimeout("SEGREDO")
+
+    monkeypatch.setattr(Path, "open", abrir)
+    with pytest.raises(OSError, match="Registro"):
+        avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto, repetir_transitorios=True),
+                          previsao=10, saida=caminho, gerar=gerar, repetir_transitorios=True)
+    assert chamadas == [True]
+    assert len(caminho.read_text(encoding="utf-8").splitlines()) == 1
