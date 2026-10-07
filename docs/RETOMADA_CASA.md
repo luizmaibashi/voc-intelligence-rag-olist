@@ -1,4 +1,27 @@
-# Retomada no computador de casa — 2026-10-06
+# Retomada — checkpoint 2026-10-07
+
+## Estado atual para a próxima sessão
+
+- CLI `src/demo.py` e README inicial prontos: buscar/contar locais e ensaio
+  sintético com gerador falso. Ensaio com MiniLM real offline funcionou;
+  243 testes passaram. Nenhuma API chamada na implementação local.
+- EDA importa com statsmodels0.14.6 declarado/instalado; main não reexecutado,
+  relatório histórico preservado. Sem reconstruir corpus/cache/pool/gabarito.
+- E05 focado: previsão1, zero saídas; HTTP503 seguido de ReadTimeout, duas
+  chamadas. Modelo/payload/timeout/política originais. Gate real bloqueado.
+- Leia primeiro o Bridge (só TC4), README e reports/demo_local_20261007.md.
+  Consulte reports/revisao_geral_20261007.md para diagnóstico; spec0006 e
+  reports/e05_reavaliacao_20261007_01.jsonl para evidências de serviço.
+- Próximo: previsão numérica antes de conferir busca/fontes/contagem reais.
+  Revisar textos recuperados antes de eventual geração; autorização E01–E20
+  não libera busca livre. Diagnóstico de disponibilidade ADR0006 em paralelo,
+  sem repetir E05 automaticamente ou mudar modelo/timeout/tentativas.
+- P09 congelado, guarda de data prevista ausente e revisão Torch pendentes.
+  Gabarito antigo untracked fora do commit. Publicação/vídeo<=7min pendentes.
+- Quiz de aprendizado enviado, ainda sem resposta: por que contar no corpus
+  inteiro e por que simulação aprovada não libera Gemini. Não bloqueia entrega.
+
+## Histórico da retomada de 2026-10-06
 
 ## Ponto de parada
 

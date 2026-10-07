@@ -1,5 +1,55 @@
 # Spec 0006 — Avaliação exploratória de resposta e recusa
 
+## Reavaliação focada E05 — contrato 2026-10-07
+
+Luiz autorizou o harness e o escopo de arquivos no chat, após prever **1 saída
+utilizável em 1 caso**. Objetivo: obter uma saída julgável para a pendência E05
+sem repetir o lote. Dono do julgamento e da decisão de gate: Luiz.
+
+- Arquivos: novo `src/eval/reavaliar_e05.py`, seus testes, esta spec, registro
+  novo em `reports/`, somente a frente TC4 e sua linha no Bridge.
+- Validar manifesto completo E01–E20 sem modificá-lo; selecionar somente E05.
+  Exigir hash original revisado `8953bffc2db35a5ff48371763c97238bf04eb16ad4424564f30ba7c6afc9ccd0`
+  e hash informado correspondente. Configuração ou payload diferente bloqueia
+  antes de criar cliente/arquivo. Prévia é padrão, sem cliente nem API.
+- Reutilizar fábrica Gemini, `responder` e `GeradorComTentativas`: modelo,
+  prompt, schema, SDK 1.75.0, timeout 25s, SDK=1, controlador<=2 e espera 2s
+  conservados. Nenhum novo comentário, busca, fallback, ajuste ou lote inteiro.
+- Criar JSONL exclusivo, com previsão 0/1 (bool inválido), caso congelado,
+  configuração, hash de origem, digests do código, UTC; flush antes da API e
+  após cada tentativa. Preservar saídas/erros seguros, sem mensagem de exceção.
+  Falha de registro interrompe; arquivo existente não é sobrescrito.
+- Aceitação técnica: testes sem API demonstram seleção exata, bloqueio de
+  drift/previsão inválida/arquivo existente, recuperação transitória, limite
+  de duas chamadas, erro permanente, saída inválida, interrupção e erro de
+  registro. Sucesso estrutural não aprova semântica; julgamento fica pendente.
+- Registro separado não altera capturas/votos anteriores. Mesmo se responder,
+  a rodada 04 permanece com E05 falho; gate exige decisão humana explícita.
+
+### Resultado focado — 2026-10-07
+
+Implementação conferida contra o contrato; testes sem API:
+`python -m pytest tests/test_reavaliar_e05.py tests/test_avaliar_geracao.py tests/test_tentativas.py -q -W error::FutureWarning`
+com basetemp novo em `.venv/pytest-tmp/e05-20261007-01`: **74 passaram**.
+Prévia conferiu o hash acima, SDK 1.75.0 e payload original E05. Geração,
+controlador, aplicação e manifesto existentes não foram editados.
+
+Comando executado com previsão 1:
+`python -m src.eval.reavaliar_e05 --manifesto data/eval/geracao_casos.json --executar --aprovacao-sha256 8953bffc2db35a5ff48371763c97238bf04eb16ad4424564f30ba7c6afc9ccd0 --previsao 1 --saida reports/e05_reavaliacao_20261007_01.jsonl`.
+
+- Tentativa 1: ServerError HTTP 503, duração 13.705ms, sem saída; espera 2s.
+- Tentativa 2: ReadTimeout, duração 25.038ms, sem saída; nenhuma terceira chamada.
+- Aplicação: `erro_geracao`, “O serviço de geração falhou nesta consulta.”
+- Observado: **0 respostas disponíveis em 1 caso**; não há conteúdo para julgar.
+  Não classificar como recusa incorreta ou reprovação factual. Sem estimativa
+  de disponibilidade geral ou atribuição do timeout a quota/incidente global.
+- Gate **bloqueado**. Não repetir novamente por conta própria nem mudar modelo,
+  timeout ou limite; revisar próximo diagnóstico com Luiz. Rodada 04 intacta.
+- Captura integral e digests do código executado:
+  `reports/e05_reavaliacao_20261007_01.jsonl`. Cabeçalho registra previsão antes
+  de abrir cliente, configuração/fonte e UTC; cada tentativa foi gravada com flush.
+  Testes e inspeção do diff/registro concluídos; sem commit ou push desta sessão.
+
 **Data:** 2026-10-06. **Dono:** Luiz Maibashi.
 **Status:** curadoria proposta e implementação do executor aprovadas no chat;
 lote E01–E20 autorizado; rodada 02 julgada por Luiz em 2026-10-06.
