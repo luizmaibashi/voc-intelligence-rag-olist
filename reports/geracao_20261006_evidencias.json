@@ -3978,8 +3978,8 @@
       "nota": "Confirmado por Luiz no chat após apresentação da evidência e resposta ou resumo da recusa. Nenhuma falha apontada."
     }
   ],
-  "gate_demo": "bloqueado",
-  "motivo_gate": "Rodada 04 julgada: 19 saídas aprovadas por Luiz, E05 falha de serviço após duas tentativas. Demo bloqueada até tratar E05; sem prova de confiabilidade geral.",
+  "gate_demo": "liberado",
+  "motivo_gate": "Liberação explícita por Luiz em 2026-10-07 para demonstração curada: 19 aprovações históricas da rodada 04 e aprovação complementar de E05 na reavaliação02, mesmo hash/configuração/contexto. Rodada 04, votos e falhas preservados. Não comprova disponibilidade ou confiabilidade geral; não autoriza novas chamadas, busca livre, publicação, commit ou push.",
   "codigo_da_rodada": "Rodadas 01/02: b228f22, manifesto E17 ajustado antes de congelar o lote. Rodada 03: b842148, com correções de contrato auditadas.",
   "metodo_julgamento": "Confirmações de Luiz no chat após blocos apresentados pelo agente, com evidências, respostas ou resumo de recusas. Sem rotulagem cega independente.",
   "julgamentos_rodada_03": [
@@ -4696,5 +4696,36 @@
       "E07"
     ],
     "utilizaveis_confirmados_humanamente": 19
+  },
+  "conciliacao_gate_20261007": {
+    "escopo": "demonstracao_curada",
+    "aprovador": "Luiz Maibashi",
+    "autorizacao": "Confirmação explícita no chat após aprovação E05 e apresentação do escopo de cinco arquivos.",
+    "gate_anterior": "bloqueado",
+    "motivo_anterior": "Rodada 04 julgada: 19 saídas aprovadas por Luiz, E05 falha de serviço após duas tentativas. Demo bloqueada até tratar E05; sem prova de confiabilidade geral.",
+    "base": "19 aprovações da rodada04 + reavaliação isolada de E05 aprovada posteriormente",
+    "hash_lote_origem": "8953bffc2db35a5ff48371763c97238bf04eb16ad4424564f30ba7c6afc9ccd0",
+    "e05": {
+      "captura": "reports/e05_reavaliacao_20261007_02.jsonl",
+      "sha256_captura": "db6e36a51c1b64e33df623e689eea97ecbdad3aa4a954060f185168846066928",
+      "julgamento_humano": "utilizavel",
+      "julgador": "Luiz Maibashi",
+      "resposta_aplicacao": {
+        "review_ids": [
+          "candidato-e05"
+        ],
+        "status": "respondida",
+        "texto": "O cliente relata que o produto recebido não se assemelha ao que foi exibido na foto do anúncio."
+      },
+      "tentativas": 1,
+      "nota": "Aprovação posterior à captura; registros pendente/bloqueado na captura são históricos e não foram sobrescritos."
+    },
+    "limites": [
+      "Não é rodada nova com20acertos; não apaga falhas anteriores.",
+      "18 casos reais, E19 sintético e E20 controle local; sem taxa geral de confiabilidade.",
+      "Demo de atrasos com dez fontes e recusa P15 aprovadas em relatório separado.",
+      "Texto da recusa do provedor difere da mensagem genérica exibida pela aplicação.",
+      "Nenhuma API, código, configuração, corpus, cache, pool, gabarito ou P09 alterados nesta conciliação."
+    ]
   }
 }

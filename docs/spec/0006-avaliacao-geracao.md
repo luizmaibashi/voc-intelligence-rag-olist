@@ -434,3 +434,14 @@ Gate **bloqueado** por E05. Próximo: diagnóstico focado/reavaliação desse
 mesmo caso, sem novo contexto ou aumento de tentativas, com previsão antes
 de chamadas e preservação de todas as falhas. O executor padrão ainda exige
 20 casos; não adulterar o manifesto para executar subconjunto.
+
+## Conciliação final do gate — 2026-10-07
+
+**Estado atual: liberado exclusivamente para demonstração curada**, por confirmação explícita de Luiz após aprovação de E05. Esta seção prevalece sobre bloqueios históricos acima para o estado atual; os resultados anteriores permanecem intactos.
+
+- Rodada04 conserva19 aprovações humanas e E05 falha de serviço. Não foi reescrita como rodada com20acertos.
+- E05 reavaliado isoladamente pelo executor original, mesmo contexto/configuração/hash8953bffc2db35a5ff48371763c97238bf04eb16ad4424564f30ba7c6afc9ccd0: primeira tentativa respondida em1490ms, uma chamada externa, sem retry acionado. Luiz aprovou a resposta atribuída ao consumidor, com citação candidato-e05, sem afirmar anúncio enganoso.
+- Captura imutável: `../../reports/e05_reavaliacao_20261007_02.jsonl`. Registros pendente/bloqueado na captura correspondem ao momento da execução; julgamento posterior e conciliação constam em `../../reports/geracao_20261006_evidencias.json`, chave `conciliacao_gate_20261007`.
+- Critério de cobertura satisfeito por19 aprovações anteriores mais aprovação complementar de E05 sob o mesmo contrato. São18 casos reais, E19 sintético e E20 controle local; sem taxa geral ou afirmação de disponibilidade/confiabilidade em produção.
+- Resposta sobre atrasos com dez fontes originais e recusa P15 nesse contexto também aprovadas por Luiz; capturas e julgamentos em `../../reports/conferencia_corpus_real_20261007.md`. Na recusa, o provedor explica a falta de informação oficial, enquanto a aplicação mostra mensagem genérica: preservar essa distinção na apresentação.
+- Liberação não autoriza novas chamadas, busca livre, mudança de modelo/timeout/repetição, publicação, commit ou push. CLI continua local sem geração. Preparação de README/roteiro e eventual implementação têm escopo próprio.
