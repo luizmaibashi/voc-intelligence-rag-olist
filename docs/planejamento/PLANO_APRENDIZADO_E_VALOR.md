@@ -47,6 +47,12 @@ empresarial plausível, ainda não validado. Não é solução de produção com
 
 ### Etapa1 — consolidar entendimento (prioridade)
 
+**Limite confirmado em 09/10/2026:** encerrar o bloco intensivo até 12/10,
+em no máximo duas sessões de 45 minutos. Depois, revisar conceitos por até
+10 minutos dentro das tarefas do projeto. As dez linhas abaixo são trilha de
+referência, não dez aulas obrigatórias antes da entrega. Retenção de longo prazo
+segue como objetivo, mas não bloqueia o Tech Challenge.
+
 Formato por aula: explicar uma ideia com exemplo do TC4 → mostrar falha/limite →
 Luiz responde uma pergunta de negócio → feedback → aplicação a um exemplo novo.
 Uma pergunta por vez; aula antes da prova; sem exigir decorar biblioteca ou código.
@@ -192,10 +198,19 @@ Novo dado empresarial/piloto não é pré-requisito automático para o Tech Chal
 
 ## Controle de escopo e prazo
 
-- Nenhuma expansão começa antes de entendimento, requisito e hipótese definidos.
+- Expansão de produto exige requisito e hipótese definidos; a entrega acadêmica
+  avança mesmo se a investigação empresarial não produzir validação a tempo.
 - Antes de cada etapa, escolher uma pergunta, um artefato e critério de saída.
-- Reservar a última semana antes de01/11 para reprodução/documentação/vídeo e
-  entrega; antecipar congelamento se o calendário do Luiz exigir.
+- **31/10 é o prazo interno de conclusão; 01/11 é reserva.** A entrega precisa
+  estar finalizada antes de 02/11, incluindo repositório público e vídeo ≤7min.
+- Até 12/10: fechar o bloco intensivo de fundamentos. A pergunta pendente está
+  em `../aprendizado/MISSAO.md` § Checkpoint de pausa — 09/10/2026.
+- Até 15/10: matriz enunciado→implementação→evidência→lacuna; escolher uma
+  tarefa empresarial e sua alternativa mais barata como hipótese testável.
+- Até 22/10: demonstração completa e reproduzível para essa tarefa.
+- Até 26/10: conferir qualidade, erros e limites com casos definidos.
+- Até 29/10: README, roteiro e gravação do vídeo.
+- Até 31/10: revisão final e entrega; 01/11 apenas para contingência.
 - Investigação sem sinal suficiente até o congelamento vira limitação/futuro,
   não atraso da entrega nem alegação de validação concluída.
 - Contexto: relatório/checkpoint curto e esta frente do Bridge; sessões separadas
@@ -215,9 +230,11 @@ Novo dado empresarial/piloto não é pré-requisito automático para o Tech Chal
 
 ## Próximo passo imediato
 
-Preparar a primeira aula: corpus/população/top-k/frequência, com exemplo do TC4,
-uma pergunta por vez e registro separado de compreensão imediata e retenção.
-Não iniciar expansão do código ou nova consulta à API.
+Fechar o bloco intensivo até 12/10. Retomar a pergunta pendente em
+`../aprendizado/MISSAO.md`, dar feedback e encerrar a distinção entre descrição
+e hipótese causal. Em seguida, dedicar a maior parte do tempo à matriz do
+enunciado e à demonstração reproduzível. Revisões de 10 minutos acompanham o
+trabalho; não continuar um questionário indefinido. Nenhuma nova API por inferência.
 
 ## Refinamento confirmado — menor custo, observabilidade/evals e ciclo completo
 

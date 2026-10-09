@@ -34,6 +34,14 @@ Após feedback, Luiz distinguiu numerador/denominador e reconheceu que ampliar r
 **Aula pausada a pedido de Luiz.** Última pergunta apresentada, sem resposta:
 “Como você apresentaria, na mesma análise, o número de pedidos com prazo longo e os comentários sobre demora sem afirmar que um causou o outro?” Retomar exatamente por ela, uma pergunta por vez; não antecipar resposta ou avançar de tema.
 
+**Limite de tempo decidido depois da pausa:** concluir o bloco intensivo até
+12/10, com no máximo duas sessões de 45 minutos. Após isso, revisões de até
+10 minutos incorporadas às tarefas do projeto. Esta pergunta serve para fechar
+a distinção descrição × hipótese causal; não iniciar um questionário sem fim.
+A prioridade passa para matriz do enunciado, demo reproduzível, avaliação,
+README e vídeo. Prazo interno 31/10, 01/11 de reserva; entrega antes de 02/11.
+Retenção futura não é gate da entrega acadêmica.
+
 Evidência de compreensão imediata, com feedback ao longo da conversa:
 - Separou busca de comentários e contagem por datas; definiu numerador/denominador após correção.
 - Distinguiu elogio ao produto de elogio à entrega; preservou crítica e elogio num mesmo relato.
