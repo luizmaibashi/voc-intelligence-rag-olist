@@ -16,14 +16,14 @@ commit `7ea1322`. Legenda: ✅ atende · 🟡 parcial · ❌ falta.
 | 2a | Transformação da pergunta | Pergunta → embedding direto | ADR 0002 | 🟡 | Justificar no README por que não há reescrita (custo × ganho não medido) |
 | 2b | Recuperação semântica | `src/retrieval` | Testes; ADR 0002 | ✅ | — |
 | 2c | Seleção dos mais relevantes | top-k + filtros nota/situação + deduplicação | spec 0005 | ✅ | — |
-| 2d | Contexto enviado ao LLM | `src/rag` | Lote curado E01–E20 | 🟡 | Só aparece no executor de avaliação, não no fluxo do usuário |
-| 2e | Geração da resposta final | Gemini 3.1 (ADR 0006) | `reports/geracao_20261006_evidencias.json` | 🟡 | **CLI `src/demo.py` não chama geração.** Falta o fluxo pergunta → resposta para o usuário |
+| 2d | Contexto enviado ao LLM | `src/rag`, prévia do CLI (spec 0007) | `reports/demo_cli_20261017.md` | ✅ | — |
+| 2e | Geração da resposta final | `--acao responder` (spec 0007, `4e96977`) | `reports/demo_cli_20261017.md` (2 respostas reais, suporte aprovado) | ✅ | Citação por resposta, não por afirmação (limite no README) |
 | 3 | Respostas com evidências rastreáveis | Citações validadas; rejeita citação inventada | ADR 0003, spec 0001/0006 | ✅ | Citação válida ≠ frase com suporte (limite declarado) |
 | 4a | Sem avaliações relevantes | Status `sem_evidencia` | spec 0006, P15 | ✅ | — |
 | 4b | Evidência insuficiente | Recusa calibrada (`calibrar_recusa.py`) | P15/recusa julgados | ✅ | — |
 | 4c | Fora do escopo | Pergunta de política oficial → recusa | Ensaio sintético, E05 | ✅ | — |
 | E1 | Repo GitHub **público** | Remoto privado | — | ❌ | Publicar após revisar dados/segredos |
-| E1 | README completo (10 itens) | README existe | — | 🟡 | Ainda diz "gate bloqueado"; falta exemplos P&R reais e reprodução ponta a ponta |
+| E1 | README completo (10 itens) | README atualizado 2026-10-17 | Exemplo real, reprodução Kaggle + SHA | 🟡 | Revisar os 10 itens antes de publicar |
 | E2 | Vídeo ≤ 7 min | — | — | ❌ | Roteiro + gravação |
 
 ## Desafio adicional (não obrigatório)
@@ -36,8 +36,8 @@ commit `7ea1322`. Legenda: ✅ atende · 🟡 parcial · ❌ falta.
 
 ## Mínima entrega defensável
 
-Bloqueante para a nota: **2e** (fluxo pergunta → geração → resposta com citações
-para o usuário), **E1 público + README atualizado**, **E2 vídeo**. O resto já tem
+Bloqueante para a nota: ~~2e~~ (feito em 2026-10-17), **E1 público + revisão
+final do README**, **E2 vídeo**. O resto já tem
 evidência; é questão de expor no README e no vídeo.
 
 ## Baseline barato (hipótese de tarefa)

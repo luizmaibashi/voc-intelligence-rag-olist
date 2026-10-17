@@ -5,9 +5,9 @@ atendimento a investigar relatos sobre entregas, conferir os comentários que
 sustentam uma resposta e consultar uma contagem de atrasos com população definida.
 
 O núcleo usa MiniLM multilíngue para embeddings, DuckDB para busca exata e
-Gemini 3.1 Flash-Lite para geração com contexto revisado. A entrada local atual
-oferece busca, fontes e contagem. A geração real ainda está bloqueada para demo:
-E05 não produziu saída após HTTP 503 e timeout. A entrada local não chama Gemini.
+Gemini 3.1 Flash-Lite para geração com contexto revisado. O CLI oferece busca,
+fontes, contagem e resposta gerada com citações; cada envio ao Gemini exige
+prévia do contexto e liberação por hash ([spec 0007](docs/spec/0007-cli-resposta-gerada.md)).
 
 ## Instalação
 
@@ -50,12 +50,21 @@ a integração local; não avalia factualidade ou disponibilidade do Gemini.
 
 ## Corpus histórico local
 
-Fonte: [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).
-Coloque os nove CSVs extraídos em `data/raw/`. Para preparar o corpus:
+Fonte: [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+(versão da página de 2021-10-01). Baixe e extraia os nove CSVs em `data/raw/`:
 
 ```powershell
+curl.exe -L -o olist.zip https://www.kaggle.com/api/v1/datasets/download/olistbr/brazilian-ecommerce
+(Get-FileHash olist.zip -Algorithm SHA256).Hash   # esperado: 967E41E04FC306FE604E2A693F488995A8B41E5047418F8A5C8E4ABD6DECA784
+Expand-Archive olist.zip -DestinationPath data/raw
 & .venv/Scripts/python.exe -X utf8 -m src.preprocessing.corpus
 ```
+
+Conferência da reprodução (2026-10-17, máquina limpa): 42.174 documentos,
+36.453 textos distintos, 4.339 atrasadas de 40.303 entregues e 372/372 textos
+do gabarito julgado idênticos. Hash diferente do zip indica outra versão da
+base: trate como nova configuração. Detalhe em
+[reports/demo_cli_20261017.md](reports/demo_cli_20261017.md).
 
 Título e mensagem formam um documento por avaliação. A limpeza conserva
 negação, acento e comentários curtos; elimina texto vazio e ausência mascarada.
@@ -102,6 +111,22 @@ antes da chamada. A saída traz status, texto, `review_id` citados e o texto
 integral de cada fonte citada. Sem credencial, `--gerador falso` roda o mesmo
 fluxo com resposta simulada e identificada. Frequência continua em `--acao contar`.
 
+Exemplo real (2026-10-17; nota ≤ 2, entrega atrasada, k = 10):
+
+> **Pergunta:** O que os clientes relatam que aconteceu depois que a entrega atrasou?
+>
+> **Resposta (`respondida`, 5 de 10 fontes citadas):** após o atraso, clientes
+> não receberam satisfação ou justificativa dos responsáveis; alguns buscaram
+> esclarecimento ou ligaram para reclamar da falta de informação e do prazo
+> descumprido.
+
+Fontes citadas, entre elas: “esperava um contato para justificar o acontecido
+[...] mas não tive” e “Quero saber o que aconteceu com a minha entrega, o prazo
+já passou e não tive satisfação dos responsáveis”. A mesma busca com a pergunta
+“O que os clientes relatam sobre entregas atrasadas?” citou os 10 comentários e
+devolveu apenas que há atraso: a formulação muda o achado. Três relatos no top-k
+levantam uma hipótese (falta de comunicação proativa); não medem sua frequência.
+
 ### Contagem de atrasos
 
 ```powershell
@@ -132,10 +157,11 @@ serviço não é apresentada como ausência de informação. Quando habilitada n
 executor de avaliação, a repetição é limitada a duas chamadas, SDK com uma
 tentativa e espera de 2s para falha transitória. Nenhum fallback automático.
 
-O lote curado E01 a E20 foi autorizado por Luiz para Gemini gratuito. Isso não
-libera o corpus inteiro nem geração a partir da busca livre. Os executores
-pedem previsão, configuração/hash correspondente e arquivo novo. A entrada
-local não aceita uma flag para enviar esses resultados ao Gemini.
+O lote curado E01 a E20 foi autorizado por Luiz para Gemini gratuito e serviu
+de gate para a demo: 19 aprovações da rodada 04 mais a reavaliação de E05, sob
+o mesmo contrato. O gate vale para demonstração curada, não para confiabilidade
+geral. Fora do lote, cada pergunta do CLI exige prévia, leitura do contexto e
+liberação por hash; nenhum envio em lote do corpus.
 
 Evidências: [spec 0006](docs/spec/0006-avaliacao-geracao.md),
 [revisão geral](reports/revisao_geral_20261007.md) e
@@ -164,8 +190,13 @@ Para gerar outra EDA, `python src/eda/01_eda_reviews.py` sobrescreve
   filtros da entrada atual.
 - P09 permanece congelado: só a liderança de prazo/rapidez foi liberada;
   ranking completo não foi aprovado.
-- Ainda falta validar a demo real ponta a ponta, resolver a disponibilidade do
-  gerador e decidir o gate. Ver [spec 0004](docs/spec/0004-demo-investigacao-entrega.md).
+- Citação é por resposta, não por afirmação: o schema não liga cada frase à sua
+  fonte. Numa execução o modelo citou todos os 10 comentários; noutra, citou por
+  frase, sem garantia do contrato. Confira as fontes exibidas.
+- Exemplos reais são demonstração (n = 2 perguntas no CLI, seleção intencional),
+  não medida de confiabilidade. Roteiro da demo na
+  [spec 0004](docs/spec/0004-demo-investigacao-entrega.md).
+- Orçamento de chamadas é contado por máquina; duas máquinas somam cotas.
 - Revisar o alerta de PyTorch e a compatibilidade do patch em ambiente separado
   antes de publicação/entrada livre. Não alterar o ambiente da avaliação capturada.
 - Publicação do repo e vídeo de até 7 minutos ficam para a etapa de entrega.
