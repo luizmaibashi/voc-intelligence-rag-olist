@@ -7,3 +7,4 @@ __pycache__/
 data/processed/
 data/eval/corpus_navegar.csv
 data/eval/p09_votacao_local.html
+data/demo/

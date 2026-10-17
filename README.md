@@ -82,6 +82,26 @@ execução, sem reutilizar ou substituir o cache histórico do pooling. A primei
 busca pode demorar; esta versão prioriza integridade e reprodução. Não foi
 validada uma promessa de latência para a entrada completa.
 
+### Resposta gerada com evidências
+
+Dois passos por pergunta ([spec 0007](docs/spec/0007-cli-resposta-gerada.md)):
+
+```powershell
+# 1. Prévia: busca real, contexto exato, alerta de PII e hash. Não chama API.
+& .venv/Scripts/python.exe -X utf8 -m src.demo --acao responder --pergunta "O que os clientes relatam sobre entregas atrasadas?" --nota-max 2 --situacao-entrega atrasado --k 10
+# 2. Envio: após ler o contexto, repetir com o hash impresso.
+& .venv/Scripts/python.exe -X utf8 -m src.demo --acao responder --pergunta "O que os clientes relatam sobre entregas atrasadas?" --nota-max 2 --situacao-entrega atrasado --k 10 --executar --aprovacao-sha256 <hash>
+```
+
+O envio é bloqueado (código 3, sem API) se o hash não bater: qualquer mudança
+em pergunta, filtros, contexto recuperado, configuração ou código exige nova
+prévia. O alerta de PII é heurístico (e-mail, telefone, CPF/CNPJ, CEP) e não
+substitui a leitura. Teto de 20 chamadas Gemini por dia UTC nesta máquina,
+contado em `data/demo/execucoes.jsonl` (fora do Git), com cabeçalho gravado
+antes da chamada. A saída traz status, texto, `review_id` citados e o texto
+integral de cada fonte citada. Sem credencial, `--gerador falso` roda o mesmo
+fluxo com resposta simulada e identificada. Frequência continua em `--acao contar`.
+
 ### Contagem de atrasos
 
 ```powershell
