@@ -53,3 +53,13 @@ Evidência de compreensão imediata, com feedback ao longo da conversa:
 **Limites:** respostas dadas após ensino e correção na mesma sequência não provam retenção independente. Lição0001 foi aplicada a vários exemplos; aula sobre causalidade/valor ainda aberta. Não marcar domínio nem `spaced_review.py --mark` por este checkpoint. Retomar depois com exemplo novo e rever em outro dia.
 
 **Projeto/execução:** plano em `../planejamento/PLANO_APRENDIZADO_E_VALOR.md`. Gate somente da demo curada liberado; CLI ainda não integra geração livre. Sem nova API, mudança de modelo, corpus, cache, pool, gabarito, votos ou P09 durante o ensino. Próximo bloco após a pergunta: fechar distinção descrição × hipótese causal, depois avançar para embeddings/cosseno e evals conforme plano.
+
+### Lição 0002 — logit, softmax e temperatura (18/10/2026)
+
+Origem: workshop Anwar Hermuche (17/10), ancorada em `temperature=0` de `src/rag/provedor_gemini.py:50`. Luiz leu a lição antes das perguntas de recuperação e não fez a previsão numérica do Galo (o valor calculado, 98%, ficou visível na conversa).
+- Corrigido: "T é a criatividade" (é consequência da distribuição, L535); "T=1 = criatividade alta" (T=1 é a distribuição nativa); "perto de 0 sobra um segundo semelhante" (o segundo também vai a ~0, salvo empate).
+- Corrigido: confundiu **reprodutibilidade** (hash + registro, spec 0007) com **qualidade** (acerto no gate E01–E20); "85%" sem `n` e intervalo.
+- Parcial: identificou a oscilação do servidor; faltou o sinal (as duas maiores notas quase empatadas) e a causa medida (tamanho do lote, não latência).
+- Acertou a escolha T 1→0,5 = "muito mais que o dobro"; o porquê saiu parcial ("exponencial" certo, "opção mais próxima" errado). Explicado: a diferença dobra no expoente, então a vantagem é elevada ao quadrado (55× → 2.981×).
+- Estado: compreensão imediata em evolução, com ajuda. Retenção não testada. **Próxima verificação, sem aviso:** "a banca pergunta se é reproduzível: resposta em duas frases".
+- Pós-entrega (não mexer antes de 31/10): a doc do Gemini recomenda o padrão de temperatura nos "Gemini 3 anteriores"; não confirma se isso vale para o 3.1-flash-lite.

@@ -20,3 +20,11 @@
 - [Zendesk — Surveys dashboard](https://support.zendesk.com/hc/en-us/articles/7043759414042-Accessing-and-viewing-the-Surveys-dashboard): funcionalidades existentes,não benchmark de eficácia.
 
 Fontes externas adicionais são verificadas antes da aula pertinente. Não extrapolar dados históricos para operação atual.
+
+## Lição 0002 — logit, softmax e temperatura
+
+- Workshop Anwar Hermuche (17/10/2026): `raw/04_Agentic_Architectures/-raw-29_mentoria_anwar_arquitetura_ia/extracao_parte1.md` (base da Base_de_Conhecimento), blocos 2–3. Transcrição automática; citar linha.
+- [Thinking Machines — Defeating Nondeterminism in LLM Inference](https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/) (Horace He, 10/09/2025): temperatura 0 não garante determinismo; causa principal é a variação do tamanho do lote. 80 respostas distintas em 1.000 no Qwen3-235B. Consultada 18/10/2026.
+- [Google — Gemini API, prompting strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies): afirma que temperatura 0 é determinística; recomenda manter os parâmetros padrão nos "modelos Gemini 3 anteriores", e o 3.6+ ignora valores customizados. Não lista o 3.1-flash-lite. Consultada 18/10/2026.
+- [Goodfellow et al. — Deep Learning, cap. 6](https://www.deeplearningbook.org/contents/mlp.html): softmax.
+- `../../src/rag/provedor_gemini.py:50`: `temperature=0` no TC4.
