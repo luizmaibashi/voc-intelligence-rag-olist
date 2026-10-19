@@ -8,6 +8,7 @@ import hashlib
 import json
 import re
 import sys
+from collections import Counter
 from dataclasses import asdict
 from datetime import datetime, timezone
 from importlib.metadata import version
@@ -16,6 +17,18 @@ from pathlib import Path
 from src.rag.provedor_gemini import GeradorGemini, INSTRUCAO, MODELO_GERACAO, SCHEMA_RESPOSTA
 from src.rag.responder import Resposta, responder
 from src.rag.tentativas import GeradorComTentativas, politica_tentativas
+from src.rag.tentativas import CODIGOS_TRANSITORIOS
+
+# Primeiras tentativas julgáveis da rodada 04; spec 0008 registra fonte, exclusões e B=0/13.
+IDS_PAREAVEIS_BASELINE = frozenset({"E02", "E03", "E04", "E06", "E07", "E08", "E09",
+                                    "E10", "E11", "E12", "E14", "E15", "E18"})
+LIMIAR_PAREADO = 3  # B_pareado + 3; B=0 para qualquer subconjunto destes IDs.
+LIMIAR_ABSOLUTO = 5
+HASH_REAVALIACAO_LOCAL = "203ec986dd98ec4550490df3b8418f5c42acf74187006b1767e2e52c3b76fae3"
+IDS_REAVALIACAO_LOCAL = frozenset({"E02", "E03", "E04", "E06", "E07", "E08", "E09",
+                                  "E10", "E11", "E12"})
+CAPTURA_FALHA_LOCAL = Path(__file__).resolve().parents[2] / "reports/geracao_citacao_afirmacao_fase1_20261019.jsonl"
+SHA256_CAPTURA_FALHA_LOCAL = "44c87c8f5ad60531b8172de85ab8d46767305b17b2d13c8cec4297445960a199"
 
 
 def _exigir(condicao: bool) -> None:
@@ -137,8 +150,33 @@ def _saida_serializavel(saida):
         return {"tipo_nao_serializavel": type(saida).__name__}
 
 
+def classificar_resultado(caso: dict, captura: dict, resposta: Resposta) -> str:
+    """Classe operacional, sem inferir acerto factual nem causa de serviço."""
+    if caso["id"] == "E20":
+        return "controle_local"
+    erro = captura["erro_integracao"]
+    if erro is not None:
+        if erro.get("fase") == "gerador" and (
+                (erro.get("classe") in {"ServerError", "ClientError", "APIError"} and
+                 erro.get("codigo") in CODIGOS_TRANSITORIOS) or
+                erro.get("classe") in {"TimeoutException", "ReadTimeout", "ConnectTimeout",
+                                       "NetworkError", "ConnectError", "RemoteProtocolError"}):
+            return "falha_servico"
+        return "falha_integracao"
+    if resposta.status == "erro_geracao":
+        saida = captura["saida_provedor"]
+        return ("truncamento_observado" if isinstance(saida, dict) and
+                saida.get("_erro_contrato") == "truncamento_observado" else "falha_contrato")
+    return "recusa" if resposta.status == "sem_evidencia" else "respondida_pendente_julgamento"
+
+
 def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
-             saida: Path, gerar=None, repetir_transitorios: bool = False) -> None:
+             saida: Path, gerar=None, repetir_transitorios: bool = False,
+             previsao_falhas_contrato: int | None = None,
+             ids_execucao: list[str] | None = None,
+             registro_orcamento: Path | None = None,
+             reavaliar_falhas_locais: bool = False,
+             limiar_contrato: int = LIMIAR_ABSOLUTO) -> None:
     # Cópia congelada impede alteração do lote durante a rodada.
     validar_manifesto(manifesto)
     manifesto = json.loads(_canonico(manifesto))
@@ -147,6 +185,69 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
         raise ValueError("Hash de aprovação não corresponde ao lote.")
     if type(previsao) is not int or not 0 <= previsao <= 20:
         raise ValueError("Previsão deve ser inteiro entre 0 e 20.")
+    if gerar is None and (type(previsao_falhas_contrato) is not int
+                          or not 0 <= previsao_falhas_contrato <= 20):
+        raise ValueError("Registre a previsão de falhas de contrato antes da API.")
+    if type(limiar_contrato) is not int or not 1 <= limiar_contrato <= 5:
+        raise ValueError("Limiar de contrato inválido.")
+    if gerar is None and limiar_contrato != LIMIAR_ABSOLUTO:
+        raise ValueError("A execução real exige o limiar absoluto aprovado de cinco falhas.")
+    if ids_execucao is not None:
+        permitidos = {c["id"] for c in manifesto["casos"]}
+        if not isinstance(ids_execucao, list) or not ids_execucao or any(
+                not isinstance(i, str) or i not in permitidos for i in ids_execucao
+        ) or len(set(ids_execucao)) != len(ids_execucao):
+            raise ValueError("IDs da execução inválidos.")
+    selecionados = [c for c in manifesto["casos"]
+                   if ids_execucao is None or c["id"] in ids_execucao]
+    real = gerar is None
+    if type(reavaliar_falhas_locais) is not bool:
+        raise ValueError("Opção de reavaliação precisa ser booleana.")
+    if reavaliar_falhas_locais and (not real or digest != HASH_REAVALIACAO_LOCAL or
+            not selecionados or any(c["id"] not in IDS_REAVALIACAO_LOCAL for c in selecionados)):
+        raise ValueError("Reavaliação local fora da autorização de Luiz.")
+    caminho_cota = (registro_orcamento or
+                    Path(__file__).resolve().parents[2] / "data/demo/execucoes.jsonl")
+    falhas_anteriores = 0
+    pareadas_anteriores = 0
+    pareaveis_concluidos = set()
+    if real:
+        from src.rag import liberacao
+        historico = liberacao._ler_registro(caminho_cota)
+        envios = Counter(l.get("id") for l in historico if l["tipo"] == "envio" and
+                         l.get("origem") == "avaliacao" and l.get("hash") == digest)
+        resultados = {l.get("id"): l for l in historico if l["tipo"] == "resultado" and
+                      l.get("origem") == "avaliacao" and l.get("hash") == digest}
+        if reavaliar_falhas_locais:
+            conteudo_captura = CAPTURA_FALHA_LOCAL.read_bytes()
+            if hashlib.sha256(conteudo_captura).hexdigest() != SHA256_CAPTURA_FALHA_LOCAL:
+                raise ValueError("Captura da falha local foi alterada.")
+            captura = [json.loads(l) for l in conteudo_captura.decode("utf-8").splitlines()]
+            if not captura or captura[0].get("hash_lote") != digest:
+                raise ValueError("Captura da falha local não confere com o hash.")
+            falhas_locais = {l.get("id") for l in captura if l.get("tipo") == "caso" and
+                             (l.get("erro_integracao") or {}).get("classe") == "ConnectError" and
+                             l.get("saida_provedor") is None}
+            if any(envios[c["id"]] != 1 or
+                   resultados.get(c["id"], {}).get("classe_operacional") != "falha_servico" or
+                   c["id"] not in falhas_locais for c in selecionados):
+                raise ValueError("Reavaliação exige uma única falha local anterior por caso.")
+        elif any(envios[c["id"]] for c in selecionados):
+            raise ValueError("Casos já enviados sob este hash; selecione apenas IDs pendentes.")
+        for linha in resultados.values():
+            falha = linha.get("classe_operacional") in {"falha_contrato", "truncamento_observado"}
+            falhas_anteriores += falha
+            pareadas_anteriores += falha and linha.get("id") in IDS_PAREAVEIS_BASELINE
+            if (linha.get("id") in IDS_PAREAVEIS_BASELINE and
+                    linha.get("classe_operacional") not in {"falha_servico", "falha_integracao"}):
+                pareaveis_concluidos.add(linha["id"])
+        fase_pareavel_completa = pareaveis_concluidos == IDS_PAREAVEIS_BASELINE
+        if (fase_pareavel_completa and pareadas_anteriores >= LIMIAR_PAREADO or
+                fase_pareavel_completa and falhas_anteriores >= LIMIAR_ABSOLUTO):
+            raise ValueError("Parada antecipada já atingida em execução anterior.")
+        if (not fase_pareavel_completa and
+                any(c["id"] not in IDS_PAREAVEIS_BASELINE for c in selecionados)):
+            raise ValueError("Conclua os 13 casos pareáveis antes dos demais.")
     caminho = Path(saida)
     if not caminho.parent.is_dir():
         raise ValueError("Pasta de saída precisa existir.")
@@ -160,11 +261,37 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
         registrar({"tipo": "cabecalho", "hash_lote": digest,
                    "configuracao": configuracao_execucao(repetir_transitorios=repetir_transitorios),
                    "manifesto": manifesto, "previsao": previsao,
+                   "previsao_falhas_contrato": previsao_falhas_contrato,
+                   "limiar_contrato": limiar_contrato,
+                   "limiar_pareado": LIMIAR_PAREADO,
+                   "ids_pareaveis_baseline": sorted(IDS_PAREAVEIS_BASELINE),
+                   "ids_execucao": [c["id"] for c in selecionados],
+                   "reavaliacao_falha_local": reavaliar_falhas_locais,
+                   "captura_origem": "reports/geracao_citacao_afirmacao_fase1_20261019.jsonl"
+                   if reavaliar_falhas_locais else None,
+                   "falhas_contrato_anteriores": falhas_anteriores,
+                   "falhas_pareadas_anteriores": pareadas_anteriores,
                    "utc": datetime.now(timezone.utc).isoformat()})
         try:
             if gerar is None:
                 gerar, client = _criar_gerador()
-            for caso in manifesto["casos"]:
+            concluidos = 0
+            falhas_contrato = falhas_anteriores
+            falhas_pareadas = pareadas_anteriores
+            for caso in selecionados:
+                registro_cota = None
+                if real and caso["id"] != "E20":
+                    # Mesmo contador local do CLI; reserva duas chamadas por caso.
+                    from src.rag import liberacao
+                    agora = datetime.now(timezone.utc)
+                    if liberacao.chamadas_no_dia(caminho_cota, agora) + 2 > liberacao.TETO_DIARIO:
+                        registrar({"tipo": "cota_esgotada", "id": caso["id"], "utc": agora.isoformat()})
+                        break
+                    registro_cota = liberacao.Registro(
+                        caminho_cota, f"lote-{digest[:12]}-{caso['id']}-{agora.strftime('%Y%m%dT%H%M%S%f')}",
+                        lambda: datetime.now(timezone.utc))
+                    registro_cota.envio({"hash": digest, "id": caso["id"], "origem": "avaliacao",
+                                         "reavaliacao_falha_local": reavaliar_falhas_locais})
                 captura = {"saida_provedor": None, "erro_integracao": None}
                 falha_registro = []
                 def registrar_tentativa(evento):
@@ -192,12 +319,40 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
                 if falha_registro:
                     # responder captura falhas do gerador; falha do registro encerra a rodada.
                     raise falha_registro[0]
+                classe = classificar_resultado(caso, captura, resposta)
                 registrar({"tipo": "caso", "id": caso["id"], **captura,
                            "resposta_aplicacao": asdict(resposta),
+                           "classe_operacional": classe,
                            "status_esperado_compativel": resposta.status in caso["status_esperados"],
                            "julgamento_semantico": "pendente",
                            "tentativa": gerar_caso.tentativas if repetir_transitorios else 1})
-            registrar({"tipo": "fim", "casos_registrados": len(manifesto["casos"])})
+                concluidos += 1
+                if registro_cota is not None:
+                    registro_cota.resultado({"tentativas": gerar_caso.tentativas if repetir_transitorios else 1,
+                                            "status": resposta.status, "hash": digest,
+                                            "id": caso["id"], "origem": "avaliacao",
+                                            "classe_operacional": classe})
+                falha_contrato = classe in {"falha_contrato", "truncamento_observado"}
+                falhas_contrato += falha_contrato
+                falhas_pareadas += falha_contrato and caso["id"] in IDS_PAREAVEIS_BASELINE
+                if (caso["id"] in IDS_PAREAVEIS_BASELINE and
+                        classe not in {"falha_servico", "falha_integracao"}):
+                    pareaveis_concluidos.add(caso["id"])
+                fase_pareavel_completa = pareaveis_concluidos == IDS_PAREAVEIS_BASELINE
+                parada_pareada = fase_pareavel_completa and falhas_pareadas >= LIMIAR_PAREADO
+                parada_total = (fase_pareavel_completa and falhas_contrato >= limiar_contrato)
+                if (real or limiar_contrato != LIMIAR_ABSOLUTO) and (parada_pareada or parada_total):
+                    registrar({"tipo": "parada_contrato", "id": caso["id"],
+                               "falhas_contrato": falhas_contrato,
+                               "falhas_pareadas": falhas_pareadas,
+                               "limiar_absoluto": limiar_contrato,
+                               "limiar_pareado": LIMIAR_PAREADO})
+                    break
+            registrar({"tipo": "fim", "casos_registrados": concluidos,
+                       "casos_selecionados": len(selecionados),
+                       "falhas_contrato": falhas_contrato,
+                       "falhas_pareadas": falhas_pareadas,
+                       "lote_completo": concluidos == len(selecionados)})
         finally:
             if client is not None:
                 client.close()
@@ -210,6 +365,9 @@ def main(argv=None) -> int:
     parser.add_argument("--repetir-transitorios", action="store_true")
     parser.add_argument("--aprovacao-sha256")
     parser.add_argument("--previsao", type=int)
+    parser.add_argument("--previsao-falhas-contrato", type=int)
+    parser.add_argument("--ids", help="IDs E01–E20 separados por vírgula para repartir dias de cota")
+    parser.add_argument("--reavaliar-falhas-locais", action="store_true")
     parser.add_argument("--saida", type=Path)
     argumentos = parser.parse_args(argv)
     try:
@@ -219,7 +377,10 @@ def main(argv=None) -> int:
                 raise ValueError("Informe saída nova para executar.")
             executar(manifesto, aprovacao_sha256=argumentos.aprovacao_sha256,
                      previsao=argumentos.previsao, saida=argumentos.saida,
-                     repetir_transitorios=argumentos.repetir_transitorios)
+                     repetir_transitorios=argumentos.repetir_transitorios,
+                     previsao_falhas_contrato=argumentos.previsao_falhas_contrato,
+                     ids_execucao=argumentos.ids.split(",") if argumentos.ids else None,
+                     reavaliar_falhas_locais=argumentos.reavaliar_falhas_locais)
         else:
             print(json.dumps(previa(manifesto, repetir_transitorios=argumentos.repetir_transitorios),
                              ensure_ascii=False, indent=2))

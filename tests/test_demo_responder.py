@@ -26,8 +26,9 @@ class GeradorFalso:
             raise self.erro
         if self.saida is not None:
             return self.saida
-        return {"status": "respondida", "texto": "Clientes relatam atraso.",
-                "review_ids": [evidencias[0]["review_id"]]}
+        return {"status": "respondida", "limitacao": "",
+                "afirmacoes": [{"frase": "Clientes relatam atraso.",
+                               "review_ids": [evidencias[0]["review_id"]]}]}
 
 
 def fabrica(gerador):
@@ -99,15 +100,17 @@ def test_executar_com_hash_responde_e_exibe_fontes_citadas(tmp_path):
     contexto = {c["review_id"] for c in saida["contexto"]}
     assert saida["modo"] == "geracao_real"
     assert saida["resposta"]["status"] == "respondida"
-    assert set(saida["resposta"]["review_ids"]) <= contexto
+    assert {i for a in saida["resposta"]["afirmacoes"] for i in a["review_ids"]} <= contexto
     corpus = demo.corpus_sintetico().set_index("review_id")
     for fonte in saida["fontes_citadas"]:
         assert fonte["texto"] == corpus.loc[fonte["review_id"], "texto"]
-    assert len(saida["fontes_citadas"]) == len(saida["resposta"]["review_ids"])
+    assert len(saida["fontes_citadas"]) == len(saida["resposta"]["afirmacoes"])
+    assert saida["afirmacoes_com_fontes"][0]["fontes"][0]["review_id"] in contexto
 
 
 def test_citacao_fora_do_contexto_vira_erro(tmp_path):
-    gerador = GeradorFalso({"status": "respondida", "texto": "x", "review_ids": ["inventado"]})
+    gerador = GeradorFalso({"status": "respondida", "limitacao": "",
+                            "afirmacoes": [{"frase": "x", "review_ids": ["inventado"]}]})
     saida = executar(tmp_path / "r.jsonl", gerador)
     assert saida["resposta"]["status"] == "erro_geracao"
     assert saida["fontes_citadas"] == []
@@ -115,7 +118,7 @@ def test_citacao_fora_do_contexto_vira_erro(tmp_path):
 
 def test_recusa_e_falha_de_servico_sao_distintas(tmp_path):
     recusa = executar(tmp_path / "a.jsonl", GeradorFalso(
-        {"status": "sem_evidencia", "texto": "Sem suporte.", "review_ids": []}))
+        {"status": "sem_evidencia", "limitacao": "Sem suporte.", "afirmacoes": []}))
     falha = executar(tmp_path / "b.jsonl", GeradorFalso(erro=RuntimeError("caiu")))
     assert recusa["resposta"]["status"] == "sem_evidencia"
     assert falha["resposta"]["status"] == "erro_geracao"

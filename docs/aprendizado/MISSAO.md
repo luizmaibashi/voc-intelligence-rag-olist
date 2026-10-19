@@ -77,3 +77,9 @@ Origem: workshop Anwar Hermuche (17/10), ancorada em `temperature=0` de `src/rag
 - **Decisão (zona de julgamento):** mudar para citação por afirmação porque quer mostrar auditar/localizar erro/agir no ponto exato. Desafiado: compra auditabilidade, não correção; vira experimento com baseline (tag `cfg-citacao-por-resposta`), custo (engenharia + ~20+ chamadas + rejulgamento dele) e abandono: **se até 25/10 o gate E01–E20 novo não estiver julgado e aprovado, a entrega volta para a tag**. Luiz aceitou. Revoga conscientemente "nada muda código antes de 31/10". Execução no Codex: `../planejamento/BRIEF_CODEX_citacao_por_afirmacao.md`.
 - Estado: compreensão imediata com ajuda; retenção não testada. **Próxima verificação, sem aviso:** "uma resposta citou só ids do contexto: o que isso prova e o que não prova?".
 - Próxima aula do plano: classificador como gate e custo fixo × variável (sintese_parte1 §"aula antes da prova", item 3).
+
+### Previsões para a rodada da spec 0008 (18/10/2026, antes de qualquer chamada)
+
+- Baseline (registrado pelo Codex na spec 0008): Luiz previu ~4 falhas de contrato; observado **0/13** julgáveis na rodada 04 (IC95% Wilson 0%–22,8%). Superestimou falha de formato: o schema cumpre o que garante.
+- Configuração nova: **17/20** casos com todas as afirmações sustentadas; **N = 3** falhas de contrato.
+- A previsão `N = 3` cobre os 20 casos; não prevê em quais IDs as falhas ocorrerão. Se as três aparecerem nos 13 pareáveis, a primeira fase aciona abandono; caso contrário, aplica-se a parada total em cinco na segunda fase. A previsão não substitui o resultado nem o julgamento do gate.

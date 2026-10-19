@@ -10,10 +10,13 @@ SCHEMA_RESPOSTA = {
     "type": "object",
     "properties": {
         "status": {"type": "string", "enum": ["respondida", "sem_evidencia"]},
-        "texto": {"type": "string"},
-        "review_ids": {"type": "array", "items": {"type": "string"}},
+        "limitacao": {"type": "string"},
+        "afirmacoes": {"type": "array", "items": {"type": "object", "properties": {
+            "frase": {"type": "string"},
+            "review_ids": {"type": "array", "items": {"type": "string"}},
+        }, "required": ["frase", "review_ids"]}},
     },
-    "required": ["status", "texto", "review_ids"],
+    "required": ["status", "limitacao", "afirmacoes"],
 }
 
 INSTRUCAO = (
@@ -22,7 +25,9 @@ INSTRUCAO = (
     "comentários. Só afirme um fato se o comentário citado o sustentar diretamente. "
     "Relato individual não comprova política oficial, percentual do corpus ou "
     "valor agregado. Se faltar o fato pedido, retorne status sem_evidencia e "
-    "explique a limitação. Se responder, cite os review_ids usados. Não use "
+    "explique a limitação no campo limitacao. Se responder, escreva uma única "
+    "alegação verificável por item de afirmacoes e cite nesse item os review_ids "
+    "que sustentam sua frase. Não escreva texto livre da resposta. Não use "
     "conhecimento externo. Escreva em português do Brasil."
 )
 
@@ -51,4 +56,14 @@ class GeradorGemini:
                 max_output_tokens=512,
             ),
         )
-        return json.loads(resposta.text)
+        candidatos = getattr(resposta, "candidates", None) or []
+        motivo = getattr(candidatos[0], "finish_reason", None) if candidatos else None
+        motivo = getattr(motivo, "name", str(motivo)) if motivo is not None else None
+        try:
+            saida = json.loads(resposta.text or "")
+        except (TypeError, ValueError):
+            return {"_erro_contrato": "truncamento_observado" if motivo == "MAX_TOKENS"
+                    else "json_invalido", "_finish_reason": motivo}
+        if isinstance(saida, dict):
+            saida["_finish_reason"] = motivo
+        return saida

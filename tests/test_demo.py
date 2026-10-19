@@ -60,8 +60,8 @@ def test_ensaio_e_simulacao_com_citacoes_validas_e_recusa():
     saida = demo.ensaio_sintetico(ModeloFalso())
     positiva, negativa = saida["consultas"]
     assert positiva["resposta_simulada"]["status"] == "respondida"
-    assert {f["review_id"] for f in positiva["fontes_citadas"]} == set(
-        positiva["resposta_simulada"]["review_ids"])
+    assert {f["review_id"] for f in positiva["fontes_citadas"]} == {
+        i for a in positiva["resposta_simulada"]["afirmacoes"] for i in a["review_ids"]}
     assert negativa["resposta_simulada"]["status"] == "sem_evidencia"
     assert negativa["fontes_citadas"] == []
     assert saida["gerador"] == "falso_local" and saida["gate_demo"] == "bloqueado"
