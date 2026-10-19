@@ -63,3 +63,17 @@ Origem: workshop Anwar Hermuche (17/10), ancorada em `temperature=0` de `src/rag
 - Acertou a escolha T 1→0,5 = "muito mais que o dobro"; o porquê saiu parcial ("exponencial" certo, "opção mais próxima" errado). Explicado: a diferença dobra no expoente, então a vantagem é elevada ao quadrado (55× → 2.981×).
 - Estado: compreensão imediata em evolução, com ajuda. Retenção não testada. **Próxima verificação, sem aviso:** "a banca pergunta se é reproduzível: resposta em duas frases".
 - Pós-entrega (não mexer antes de 31/10): a doc do Gemini recomenda o padrão de temperatura nos "Gemini 3 anteriores"; não confirma se isso vale para o 3.1-flash-lite.
+
+### Retenção da lição 0002 — sem aviso (18/10/2026)
+
+"A banca pergunta se é reproduzível: duas frases." Luiz, sem ajuda: não promete texto idêntico; T=0 reduz a variação, mas o servidor ainda pode mudá-la; garante auditabilidade (hash + registro) e a qualidade é medida à parte no gate. **Acerto**: separou reprodutibilidade, auditabilidade e qualidade, que tinha confundido na aula. Não nomeou a causa (tamanho do lote), aceitável em duas frases. Mesmo dia da aula: recuperação imediata, não retenção de longo prazo. Sem `--mark`.
+
+### Lição 0003 — saída estruturada: formato × verdade (18/10/2026)
+
+Âncoras: `SCHEMA_RESPOSTA` (`src/rag/provedor_gemini.py:9-17`) e `src/rag/responder.py:50`; workshop L1814/L1815/L1826; doc Gemini Structured output.
+- Previu certo que `responder()` devolve `respondida` para citação que não sustenta a frase. Porquê saiu vago ("as avaliações se encaixam no formato"); corrigido: o que passa é a *resposta*, por duas barreiras (schema e id no contexto), e nenhuma checa suporte.
+- Na opção "por afirmação", acertou que continua sem garantir que a citação sustenta a frase; **não viu o ganho** (rastreabilidade, auditoria par a par). Explicado com exemplo r1/r2/r3.
+- Pediu explicação do que muda entre as opções (dica sob demanda, não conta como erro).
+- **Decisão (zona de julgamento):** mudar para citação por afirmação porque quer mostrar auditar/localizar erro/agir no ponto exato. Desafiado: compra auditabilidade, não correção; vira experimento com baseline (tag `cfg-citacao-por-resposta`), custo (engenharia + ~20+ chamadas + rejulgamento dele) e abandono: **se até 25/10 o gate E01–E20 novo não estiver julgado e aprovado, a entrega volta para a tag**. Luiz aceitou. Revoga conscientemente "nada muda código antes de 31/10". Execução no Codex: `../planejamento/BRIEF_CODEX_citacao_por_afirmacao.md`.
+- Estado: compreensão imediata com ajuda; retenção não testada. **Próxima verificação, sem aviso:** "uma resposta citou só ids do contexto: o que isso prova e o que não prova?".
+- Próxima aula do plano: classificador como gate e custo fixo × variável (sintese_parte1 §"aula antes da prova", item 3).

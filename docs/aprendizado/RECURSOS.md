@@ -28,3 +28,10 @@ Fontes externas adicionais são verificadas antes da aula pertinente. Não extra
 - [Google — Gemini API, prompting strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies): afirma que temperatura 0 é determinística; recomenda manter os parâmetros padrão nos "modelos Gemini 3 anteriores", e o 3.6+ ignora valores customizados. Não lista o 3.1-flash-lite. Consultada 18/10/2026.
 - [Goodfellow et al. — Deep Learning, cap. 6](https://www.deeplearningbook.org/contents/mlp.html): softmax.
 - `../../src/rag/provedor_gemini.py:50`: `temperature=0` no TC4.
+
+## Lição 0003 — saída estruturada: formato × verdade
+
+- Workshop Anwar Hermuche (17/10/2026): `raw/04_Agentic_Architectures/-raw-29_mentoria_anwar_arquitetura_ia/transcricao.md` L1809–1826 (exemplo baixa/média/alta × "urgente"; L1814 restrição de tokens; L1815 "garante o formato… não se está certo"; L1826 lista fechada no schema). Extração no bloco 7 de `extracao_parte1.md`. Transcrição automática; citar linha.
+- [Google — Gemini API, Structured output](https://ai.google.dev/gemini-api/docs/structured-output): suporta *subconjunto* do JSON Schema, `enum` para strings; em boas práticas: "While output is syntactically correct JSON, always validate values in your application" e tratar saídas "schema-compliant but semantically incorrect". A página não usa a palavra "garantia". Consultada 18/10/2026.
+- [Willard & Louf — Efficient Guided Generation for LLMs (arXiv 2307.09702, 2023)](https://arxiv.org/abs/2307.09702): geração reformulada como transições de máquina de estados finitos, guiada por regex/gramática sobre o vocabulário. Base do mecanismo de decodificação restrita (biblioteca Outlines). Resumo consultado 18/10/2026; não afirma como o Gemini implementa internamente.
+- `../../src/rag/provedor_gemini.py:9-17` (`SCHEMA_RESPOSTA`, `enum` de `status`) e `../../src/rag/responder.py:50` (citação dentro do contexto ≠ suporte semântico; docstring L1 e L27 declaram o limite).

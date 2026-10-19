@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TC4 · Formato não é verdade</title><link rel="stylesheet" href="../assets/curso.css"></head><body><main>
+<header><small>TC4 · LIÇÃO 0003 · COMPREENSÃO IMEDIATA COM AJUDA · RETENÇÃO NÃO TESTADA</small>
+<h1>Saída estruturada garante o formato, não a verdade.</h1>
+<p>Objetivo: explicar à banca o que o schema e a validação de citações do TC4 garantem, o que não garantem, e por que a citação por afirmação compra rastreabilidade, não correção.</p></header>
+
+<h2>1. A dor de negócio</h2>
+<p>Um gestor lê: <em>"Clientes reclamam de atraso e de produto com defeito [r1, r2]"</em>. Confia porque há citação e manda investigar o fornecedor. Se r2 não fala de defeito, a empresa paga por uma investigação que o dado não sustenta. <strong>A citação deu aparência de prova sem ser prova.</strong></p>
+
+<h2>2. O mecanismo</h2>
+<div class="grid">
+<div class="card"><strong>Decodificação restrita</strong><br>A cada passo, antes do sorteio, o sistema apaga os tokens que o schema proíbe; a softmax (lição <a href="0002-logit-softmax-temperatura.html">0002</a>) só distribui entre os permitidos. <span class="note">(Anwar, L1814; Willard &amp; Louf, 2023)</span></div>
+<div class="card"><strong>Lista fechada no schema</strong><br>"Urgente" some se o enum é baixa/média/alta. Pedir no prompt "respeita em alguns casos, mas você não garante". <span class="note">(L1826)</span></div>
+<div class="card"><strong>O que fica de fora</strong><br>"Baixa" passa no schema mesmo quando a resposta certa era "alta". O corte é por <em>validade</em>, não por <em>verdade</em>. <span class="note">(L1815)</span></div>
+<div class="card"><strong>No TC4</strong><br><code>provedor_gemini.py:12</code>: <code>status</code> ∈ {respondida, sem_evidencia}. <code>responder.py:50</code>: id citado precisa estar no contexto.</div>
+</div>
+<p class="note">O próprio Google: "While output is syntactically correct JSON, always validate values in your application" e trate saídas "schema-compliant but semantically incorrect".</p>
+
+<h2>3. Preveja</h2>
+<div class="question">
+<p>Contexto: <code>r1</code> "Chegou 10 dias atrasado." · <code>r2</code> "Produto ótimo, chegou antes do prazo."<br>Modelo devolve <code>{"status":"respondida","texto":"Clientes relatam atraso e produto com defeito.","review_ids":["r1","r2"]}</code>.</p>
+<p>O que <code>responder()</code> retorna?</p>
+<p id="ops"><button data-r="ok">respondida</button> <button data-r="no">sem_evidencia</button> <button data-r="no">erro_geracao</button></p>
+<p class="note" id="fb" aria-live="polite"></p>
+</div>
+
+<h2>4. Três camadas, três garantias</h2>
+<table>
+<tr><th>Camada</th><th>Garante</th><th>Não garante</th></tr>
+<tr><td>Schema / enum</td><td>formato e lista fechada</td><td>que o valor está certo</td></tr>
+<tr><td><code>responder.py:50</code></td><td>citação existe no contexto</td><td>que sustenta a frase</td></tr>
+<tr><td>Gate E01–E20 julgado</td><td>suporte medido nos casos curados</td><td>casos fora do gate</td></tr>
+</table>
+
+<h2>5. Por resposta × por afirmação</h2>
+<div class="grid">
+<div class="card"><strong>Por resposta (até 18/10)</strong><br><code>review_ids: [r1, r2, r3]</code> para o texto inteiro. Auditor precisa casar fonte e frase sozinho; um <code>r3</code> que não sustenta nada passa despercebido.</div>
+<div class="card"><strong>Por afirmação (experimento)</strong><br><code>afirmacoes: [{frase, review_ids}]</code>. O erro continua possível, mas fica exposto par a par: <strong>auditoria mais barata, não resposta mais correta.</strong></div>
+</div>
+<div class="alerta">
+<p><strong>Decisão de Luiz em 18/10:</strong> mudar para citação por afirmação como experimento. Baseline congelado na tag <code>cfg-citacao-por-resposta</code>. Critério de abandono: se até 25/10 o gate E01–E20 da configuração nova não estiver julgado e aprovado, a entrega volta para a tag. Narrativa proibida: "agora a resposta está mais certa". Narrativa certa: "agora sei onde conferir".</p>
+</div>
+
+<h2>6. Recupere sem olhar</h2>
+<ol>
+<li>Por que um enum no schema garante mais que a mesma lista escrita no prompt?</li>
+<li>Uma resposta citou só ids do contexto. O que isso prova e o que não prova?</li>
+<li>Em uma frase para a banca: o que a citação por afirmação compra?</li>
+</ol>
+
+<h2>Fontes</h2>
+<ul class="note">
+<li>Workshop Anwar Hermuche, 17/10/2026 — <code>raw/04_Agentic_Architectures/-raw-29_mentoria_anwar_arquitetura_ia/transcricao.md</code> L1809–1826; extração no bloco 7.</li>
+<li><a href="https://ai.google.dev/gemini-api/docs/structured-output">Google — Gemini API, Structured output</a> (leitura primária recomendada: seções "JSON schema support" e "Best practices"; consultada 18/10/2026).</li>
+<li><a href="https://arxiv.org/abs/2307.09702">Willard &amp; Louf — Efficient Guided Generation for Large Language Models (2023)</a>: geração como máquina de estados finitos.</li>
+<li><code>../../src/rag/provedor_gemini.py:9-17</code>, <code>../../src/rag/responder.py:50</code>.</li>
+</ul>
+<p class="note">Dúvida ou discordância: pergunte no chat. Sou seu professor neste workspace.</p>
+
+<script>
+document.querySelectorAll('#ops button').forEach(b=>b.onclick=()=>{
+document.getElementById('fb').textContent=b.dataset.r==='ok'
+?'Certo. Schema válido e r1, r2 estão no contexto: as duas barreiras passam. Nenhuma pergunta se r2 sustenta "defeito".'
+:'Não. O schema aceita o JSON e responder.py:50 só confere se r1 e r2 estavam no contexto. Sai respondida, com citação falsa.';});
+</script>
+</main></body></html>
