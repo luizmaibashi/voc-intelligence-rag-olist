@@ -29,6 +29,38 @@ IDS_REAVALIACAO_LOCAL = frozenset({"E02", "E03", "E04", "E06", "E07", "E08", "E0
                                   "E10", "E11", "E12"})
 CAPTURA_FALHA_LOCAL = Path(__file__).resolve().parents[2] / "reports/geracao_citacao_afirmacao_fase1_20261019.jsonl"
 SHA256_CAPTURA_FALHA_LOCAL = "44c87c8f5ad60531b8172de85ab8d46767305b17b2d13c8cec4297445960a199"
+HASH_REAVALIACAO_SERVICO = "203ec986dd98ec4550490df3b8418f5c42acf74187006b1767e2e52c3b76fae3"
+CAPTURAS_FALHA_SERVICO = {
+    "E02": ("reports/geracao_citacao_afirmacao_f1_e1_e02_20261020.jsonl",
+            "86d265867b737551b72dc7b0f5b419cf4f89171df8109959360c9267376047bb", 2),
+    "E18": ("reports/geracao_citacao_afirmacao_f1_e14-e15-e18_20261020T1421.jsonl",
+            "47b65861713f7f74a208a8575f0db2124dd679f6a3e401d24656fd384925272a", 1),
+}
+
+
+def autorizar_reenvio_servico(ids: list[str], digest: str, envios: Counter,
+                             resultados: dict) -> None:
+    """Confere a autorização pontual antes de criar o cliente ou a captura nova."""
+    if digest != HASH_REAVALIACAO_SERVICO or not ids or any(
+            cid not in CAPTURAS_FALHA_SERVICO for cid in ids):
+        raise ValueError("Reenvio de serviço fora da autorização de Luiz.")
+    raiz = Path(__file__).resolve().parents[2]
+    for cid in ids:
+        caminho, sha, quantidade = CAPTURAS_FALHA_SERVICO[cid]
+        conteudo = (raiz / caminho).read_bytes().replace(b"\r\n", b"\n")
+        if hashlib.sha256(conteudo).hexdigest() != sha:
+            raise ValueError(f"Captura de origem de {cid} foi alterada.")
+        linhas = [json.loads(l) for l in conteudo.decode("utf-8").splitlines()]
+        casos = [l for l in linhas if l.get("tipo") == "caso" and l.get("id") == cid]
+        if (not linhas or linhas[0].get("hash_lote") != digest or len(casos) != 1 or
+                casos[0].get("saida_provedor", object()) is not None or
+                casos[0].get("classe_operacional") != "falha_servico" or
+                (casos[0].get("erro_integracao") or {}).get("classe") not in
+                {"ServerError", "ReadTimeout"}):
+            raise ValueError(f"Contrato da captura de origem de {cid} inválido.")
+        if (envios[cid] != quantidade or
+                resultados.get(cid, {}).get("classe_operacional") != "falha_servico"):
+            raise ValueError(f"Histórico de {cid} não autoriza novo reenvio.")
 
 
 def _exigir(condicao: bool) -> None:
@@ -176,6 +208,7 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
              ids_execucao: list[str] | None = None,
              registro_orcamento: Path | None = None,
              reavaliar_falhas_locais: bool = False,
+             reavaliar_falha_servico: bool = False,
              limiar_contrato: int = LIMIAR_ABSOLUTO) -> None:
     # Cópia congelada impede alteração do lote durante a rodada.
     validar_manifesto(manifesto)
@@ -201,8 +234,10 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
     selecionados = [c for c in manifesto["casos"]
                    if ids_execucao is None or c["id"] in ids_execucao]
     real = gerar is None
-    if type(reavaliar_falhas_locais) is not bool:
+    if type(reavaliar_falhas_locais) is not bool or type(reavaliar_falha_servico) is not bool:
         raise ValueError("Opção de reavaliação precisa ser booleana.")
+    if reavaliar_falhas_locais and reavaliar_falha_servico:
+        raise ValueError("Opções de reavaliação incompatíveis.")
     if reavaliar_falhas_locais and (not real or digest != HASH_REAVALIACAO_LOCAL or
             not selecionados or any(c["id"] not in IDS_REAVALIACAO_LOCAL for c in selecionados)):
         raise ValueError("Reavaliação local fora da autorização de Luiz.")
@@ -218,6 +253,8 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
                          l.get("origem") == "avaliacao" and l.get("hash") == digest)
         resultados = {l.get("id"): l for l in historico if l["tipo"] == "resultado" and
                       l.get("origem") == "avaliacao" and l.get("hash") == digest}
+        if reavaliar_falha_servico:
+            autorizar_reenvio_servico([c["id"] for c in selecionados], digest, envios, resultados)
         if reavaliar_falhas_locais:
             conteudo_captura = CAPTURA_FALHA_LOCAL.read_bytes()
             if hashlib.sha256(conteudo_captura).hexdigest() != SHA256_CAPTURA_FALHA_LOCAL:
@@ -232,7 +269,7 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
                    resultados.get(c["id"], {}).get("classe_operacional") != "falha_servico" or
                    c["id"] not in falhas_locais for c in selecionados):
                 raise ValueError("Reavaliação exige uma única falha local anterior por caso.")
-        elif any(envios[c["id"]] for c in selecionados):
+        elif not reavaliar_falha_servico and any(envios[c["id"]] for c in selecionados):
             raise ValueError("Casos já enviados sob este hash; selecione apenas IDs pendentes.")
         for linha in resultados.values():
             falha = linha.get("classe_operacional") in {"falha_contrato", "truncamento_observado"}
@@ -267,6 +304,7 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
                    "ids_pareaveis_baseline": sorted(IDS_PAREAVEIS_BASELINE),
                    "ids_execucao": [c["id"] for c in selecionados],
                    "reavaliacao_falha_local": reavaliar_falhas_locais,
+                   "reavaliacao_falha_servico": reavaliar_falha_servico,
                    "captura_origem": "reports/geracao_citacao_afirmacao_fase1_20261019.jsonl"
                    if reavaliar_falhas_locais else None,
                    "falhas_contrato_anteriores": falhas_anteriores,
@@ -291,7 +329,8 @@ def executar(manifesto: dict, *, aprovacao_sha256: str, previsao: int,
                         caminho_cota, f"lote-{digest[:12]}-{caso['id']}-{agora.strftime('%Y%m%dT%H%M%S%f')}",
                         lambda: datetime.now(timezone.utc))
                     registro_cota.envio({"hash": digest, "id": caso["id"], "origem": "avaliacao",
-                                         "reavaliacao_falha_local": reavaliar_falhas_locais})
+                                         "reavaliacao_falha_local": reavaliar_falhas_locais,
+                                         "reavaliacao_falha_servico": reavaliar_falha_servico})
                 captura = {"saida_provedor": None, "erro_integracao": None}
                 falha_registro = []
                 def registrar_tentativa(evento):
@@ -368,6 +407,7 @@ def main(argv=None) -> int:
     parser.add_argument("--previsao-falhas-contrato", type=int)
     parser.add_argument("--ids", help="IDs E01–E20 separados por vírgula para repartir dias de cota")
     parser.add_argument("--reavaliar-falhas-locais", action="store_true")
+    parser.add_argument("--reavaliar-falha-servico", action="store_true")
     parser.add_argument("--saida", type=Path)
     argumentos = parser.parse_args(argv)
     try:
@@ -380,13 +420,17 @@ def main(argv=None) -> int:
                      repetir_transitorios=argumentos.repetir_transitorios,
                      previsao_falhas_contrato=argumentos.previsao_falhas_contrato,
                      ids_execucao=argumentos.ids.split(",") if argumentos.ids else None,
-                     reavaliar_falhas_locais=argumentos.reavaliar_falhas_locais)
+                     reavaliar_falhas_locais=argumentos.reavaliar_falhas_locais,
+                     reavaliar_falha_servico=argumentos.reavaliar_falha_servico)
         else:
             print(json.dumps(previa(manifesto, repetir_transitorios=argumentos.repetir_transitorios),
                              ensure_ascii=False, indent=2))
         return 0
-    except (OSError, ValueError, TypeError):
-        print("Falha: confira contrato, aprovação, previsão e arquivo de saída.", file=sys.stderr)
+    except (OSError, ValueError, TypeError) as erro:
+        if argumentos.reavaliar_falha_servico:
+            print(f"Falha: {erro}", file=sys.stderr)
+        else:
+            print("Falha: confira contrato, aprovação, previsão e arquivo de saída.", file=sys.stderr)
         return 2
 
 

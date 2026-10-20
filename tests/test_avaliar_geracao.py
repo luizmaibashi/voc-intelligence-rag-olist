@@ -2,6 +2,7 @@ import copy
 import hashlib
 import json
 import sys
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -447,6 +448,157 @@ def test_reavaliacao_local_preserva_captura_e_nao_permite_terceiro_envio(manifes
         avaliacao.executar(manifesto, saida=tmp_path / "terceira.jsonl",
                           reavaliar_falhas_locais=True, **kwargs)
     assert not (tmp_path / "terceira.jsonl").exists()
+
+
+def test_reenvio_servico_autorizado_e_segundo_recusado(manifesto, tmp_path, monkeypatch):
+    digest = avaliacao.hash_lote(manifesto, repetir_transitorios=True)
+    monkeypatch.setattr(avaliacao, "HASH_REAVALIACAO_SERVICO", digest)
+    for cid in ("E02", "E18"):
+        caminho, _, quantidade = avaliacao.CAPTURAS_FALHA_SERVICO[cid]
+        origem = Path(avaliacao.__file__).resolve().parents[2] / caminho
+        linhas_origem = [json.loads(l) for l in origem.read_text(encoding="utf-8").splitlines()]
+        linhas_origem[0]["hash_lote"] = digest
+        copia = tmp_path / f"origem_{cid}.jsonl"
+        conteudo = ("\n".join(json.dumps(l, ensure_ascii=False) for l in linhas_origem) + "\n").encode()
+        copia.write_bytes(conteudo)
+        monkeypatch.setitem(avaliacao.CAPTURAS_FALHA_SERVICO, cid,
+                            (str(copia), hashlib.sha256(conteudo).hexdigest(), quantidade))
+    cota = tmp_path / "cota.jsonl"
+    linhas = []
+    for cid, quantidade in (("E02", 2), ("E18", 1)):
+        for indice in range(quantidade):
+            execucao = f"{cid}-{indice}"
+            linhas.extend([{"tipo": "envio", "execucao": execucao, "id": cid,
+                            "origem": "avaliacao", "hash": digest, "utc": "2026-10-19T00:00:00+00:00"},
+                           {"tipo": "resultado", "execucao": execucao, "id": cid,
+                            "origem": "avaliacao", "hash": digest, "tentativas": 2,
+                            "classe_operacional": "falha_servico"}])
+    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
+    class Cliente:
+        def close(self):
+            pass
+    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: (
+        lambda *_: {"status": "sem_evidencia", "limitacao": "", "afirmacoes": []}, Cliente()))
+    kwargs = {"aprovacao_sha256": digest, "previsao": 17, "previsao_falhas_contrato": 3,
+              "registro_orcamento": cota, "repetir_transitorios": True,
+              "reavaliar_falha_servico": True}
+    avaliacao.executar(manifesto, saida=tmp_path / "e02.jsonl", ids_execucao=["E02"], **kwargs)
+    with pytest.raises(ValueError, match="Histórico"):
+        avaliacao.executar(manifesto, saida=tmp_path / "e02_novo.jsonl", ids_execucao=["E02"], **kwargs)
+    with pytest.raises(ValueError, match="13 casos pareáveis"):
+        avaliacao.executar(manifesto, saida=tmp_path / "fase2.jsonl", ids_execucao=["E01"],
+                          **{k: v for k, v in kwargs.items() if k != "reavaliar_falha_servico"})
+    avaliacao.executar(manifesto, saida=tmp_path / "e18.jsonl", ids_execucao=["E18"], **kwargs)
+    assert not (tmp_path / "e02_novo.jsonl").exists()
+
+
+def test_opcoes_de_reenvio_incompativeis_antes_do_cliente(manifesto, tmp_path, monkeypatch):
+    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: pytest.fail("cliente criado"))
+    with pytest.raises(ValueError, match="incompatíveis"):
+        avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto),
+                          previsao=17, previsao_falhas_contrato=3,
+                          saida=tmp_path / "recusado.jsonl", ids_execucao=["E02"],
+                          reavaliar_falhas_locais=True, reavaliar_falha_servico=True)
+    assert not (tmp_path / "recusado.jsonl").exists()
+
+
+def test_reenvio_servico_exige_ultimo_resultado_falha_antes_do_cliente(
+        manifesto, tmp_path, monkeypatch):
+    digest = avaliacao.hash_lote(manifesto, repetir_transitorios=True)
+    monkeypatch.setattr(avaliacao, "HASH_REAVALIACAO_SERVICO", digest)
+    caminho, _, quantidade = avaliacao.CAPTURAS_FALHA_SERVICO["E02"]
+    origem = Path(avaliacao.__file__).resolve().parents[2] / caminho
+    linhas_origem = [json.loads(l) for l in origem.read_text(encoding="utf-8").splitlines()]
+    linhas_origem[0]["hash_lote"] = digest
+    copia = tmp_path / "origem_e02.jsonl"
+    conteudo = ("\n".join(json.dumps(l, ensure_ascii=False) for l in linhas_origem) + "\n").encode()
+    copia.write_bytes(conteudo)
+    monkeypatch.setitem(avaliacao.CAPTURAS_FALHA_SERVICO, "E02",
+                        (str(copia), hashlib.sha256(conteudo).hexdigest(), quantidade))
+    cota = tmp_path / "cota.jsonl"
+    linhas = []
+    for indice, classe in enumerate(("falha_servico", "respondida_pendente_julgamento")):
+        execucao = f"E02-{indice}"
+        linhas.extend([{"tipo": "envio", "execucao": execucao, "id": "E02",
+                        "origem": "avaliacao", "hash": digest, "utc": "2026-10-19T00:00:00+00:00"},
+                       {"tipo": "resultado", "execucao": execucao, "id": "E02",
+                        "origem": "avaliacao", "hash": digest, "tentativas": 1,
+                        "classe_operacional": classe}])
+    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
+    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: pytest.fail("cliente criado"))
+    saida = tmp_path / "recusado.jsonl"
+    with pytest.raises(ValueError, match="Histórico"):
+        avaliacao.executar(manifesto, aprovacao_sha256=digest, previsao=17,
+                          previsao_falhas_contrato=3, saida=saida,
+                          registro_orcamento=cota, repetir_transitorios=True,
+                          ids_execucao=["E02"], reavaliar_falha_servico=True)
+    assert not saida.exists()
+
+
+def test_fase2_so_depois_de_e02_e_e18_com_saida(manifesto, tmp_path, monkeypatch):
+    digest = avaliacao.hash_lote(manifesto)
+    cota = tmp_path / "cota.jsonl"
+    linhas = []
+    for cid in avaliacao.IDS_PAREAVEIS_BASELINE:
+        if cid == "E18":
+            continue
+        classe = "falha_servico" if cid == "E02" else "recusa"
+        linhas.extend([{"tipo": "envio", "execucao": cid, "id": cid, "origem": "avaliacao",
+                        "hash": digest, "utc": "2026-10-19T00:00:00+00:00"},
+                       {"tipo": "resultado", "execucao": cid, "id": cid, "origem": "avaliacao",
+                        "hash": digest, "tentativas": 1, "classe_operacional": classe}])
+    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
+    class Cliente:
+        def close(self):
+            pass
+    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: (
+        lambda *_: {"status": "sem_evidencia", "limitacao": "", "afirmacoes": []}, Cliente()))
+    kwargs = {"aprovacao_sha256": digest, "previsao": 17, "previsao_falhas_contrato": 3,
+              "registro_orcamento": cota}
+    with pytest.raises(ValueError, match="13 casos pareáveis"):
+        avaliacao.executar(manifesto, saida=tmp_path / "cedo.jsonl", ids_execucao=["E01"], **kwargs)
+    linhas.append({"tipo": "resultado", "execucao": "E02-novo", "id": "E02",
+                  "origem": "avaliacao", "hash": digest, "classe_operacional": "recusa"})
+    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="13 casos pareáveis"):
+        avaliacao.executar(manifesto, saida=tmp_path / "ainda_cedo.jsonl", ids_execucao=["E01"], **kwargs)
+    linhas.append({"tipo": "resultado", "execucao": "E18-novo", "id": "E18",
+                  "origem": "avaliacao", "hash": digest, "classe_operacional": "recusa"})
+    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
+    avaliacao.executar(manifesto, saida=tmp_path / "fase2.jsonl", ids_execucao=["E01"], **kwargs)
+
+
+def test_guarda_reenvio_servico_recusa_desvios(tmp_path, monkeypatch):
+    digest = avaliacao.HASH_REAVALIACAO_SERVICO
+    envios = Counter({"E02": 2, "E18": 1})
+    resultados = {cid: {"classe_operacional": "falha_servico"} for cid in envios}
+    avaliacao.autorizar_reenvio_servico(["E02", "E18"], digest, envios, resultados)
+    with pytest.raises(ValueError, match="autorização"):
+        avaliacao.autorizar_reenvio_servico(["E03"], digest, envios, resultados)
+    with pytest.raises(ValueError, match="Histórico"):
+        avaliacao.autorizar_reenvio_servico(["E02"], digest, Counter({"E02": 3}), resultados)
+    caminho, sha, n = avaliacao.CAPTURAS_FALHA_SERVICO["E02"]
+    original = (Path(avaliacao.__file__).resolve().parents[2] / caminho).read_bytes().replace(b"\r\n", b"\n")
+    for conteudo in (original, original.replace(b"\n", b"\r\n")):
+        copia = tmp_path / "origem.jsonl"
+        copia.write_bytes(conteudo)
+        monkeypatch.setitem(avaliacao.CAPTURAS_FALHA_SERVICO, "E02", (str(copia), sha, n))
+        avaliacao.autorizar_reenvio_servico(["E02"], digest, envios, resultados)
+    copia.write_bytes(original + b"x")
+    with pytest.raises(ValueError, match="alterada"):
+        avaliacao.autorizar_reenvio_servico(["E02"], digest, envios, resultados)
+    caso = json.loads(next(l for l in original.decode().splitlines()
+                           if json.loads(l).get("tipo") == "caso" and json.loads(l).get("id") == "E02"))
+    caso["saida_provedor"] = {"status": "respondida"}
+    alterado = b"\n".join(json.dumps(caso if json.loads(l).get("tipo") == "caso" and
+                                      json.loads(l).get("id") == "E02" else json.loads(l),
+                                      ensure_ascii=False, separators=(",", ":")).encode()
+                            for l in original.decode().splitlines()) + b"\n"
+    copia.write_bytes(alterado)
+    monkeypatch.setitem(avaliacao.CAPTURAS_FALHA_SERVICO, "E02", (
+        str(copia), hashlib.sha256(alterado).hexdigest(), n))
+    with pytest.raises(ValueError, match="Contrato"):
+        avaliacao.autorizar_reenvio_servico(["E02"], digest, envios, resultados)
 
 
 def test_aprovacao_antiga_rejeita_texto_alterado_antes_de_cliente(manifesto, tmp_path, monkeypatch):
