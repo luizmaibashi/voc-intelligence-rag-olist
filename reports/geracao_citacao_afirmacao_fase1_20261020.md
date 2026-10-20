@@ -60,3 +60,7 @@ P2 (SDK/hash) → P3 (cota) → P4 (DNS/TLS) → E1 (E02) → CHK → P3 → E2 
 | `sem_evidencia` | 1 | 2 (ambas esperadas) |
 
 Observação: as 3 falhas de serviço implícitas na previsão viraram 2 pendentes e 1 transitória recuperada (E07). Todas as falhas de hoje vieram do provedor (`503`/`504`/timeout), com DNS e TLS ok.
+
+### Previsão do julgamento (registrada 2026-10-20T14:33Z, antes de ver frases e fontes)
+
+Luiz prevê **9/9** frases `respondida` sustentadas (S).
