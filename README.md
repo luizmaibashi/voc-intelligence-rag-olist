@@ -39,7 +39,10 @@ não estiver no cache, prepare-o com conexão antes de executar a demo:
 ```
 
 Esse comando baixa o modelo; não envia comentários da Olist. Nome do modelo
-não fixa uma revisão dos pesos remotos. Registre a revisão na avaliação final.
+não fixa uma revisão dos pesos remotos. O cache local em 20/10/2026 apontava
+para `e8f8c211226b894fcb81acc59f3b34ba3efd5f42`, também registrada em
+[um teste de cache](reports/integridade_busca_cache.md). Não há registro que
+comprove essa revisão nas capturas de geração.
 
 ## Ensaio sintético local
 
@@ -241,6 +244,16 @@ O teste de importação da EDA não executa main nem altera seu relatório hist�
 Para gerar outra EDA, `python src/eda/01_eda_reviews.py` sobrescreve
 `reports/eda_olist.md`; esse comando deve fazer parte de uma reavaliação planejada.
 
+## Licença e atribuição
+
+O código em `src/`, `tests/` e scripts está sob [MIT](LICENSE). Dados derivados
+e trechos de avaliações estão sob [CC BY-NC-SA 4.0](LICENSE-DATA.md), com
+atribuição à Olist. A varredura dos arquivos rastreados em `data/` e `reports/`
+não encontrou e-mail, telefone, CPF, CNPJ ou CEP em formato reconhecível.
+Nomes próprios no texto livre não foram conferidos manualmente. Os comentários
+de origem já estão no dataset público da Olist; isso não elimina o risco
+residual de dados pessoais.
+
 ## Limites e entrega pendente
 
 - Dados de 2016 a 2018: não representam a operação atual da Olist.
@@ -254,12 +267,11 @@ Para gerar outra EDA, `python src/eda/01_eda_reviews.py` sobrescreve
   não medida de confiabilidade. Roteiro da demo na
   [spec 0004](docs/spec/0004-demo-investigacao-entrega.md).
 - Orçamento de chamadas é contado por máquina; duas máquinas somam cotas.
-- Revisar o alerta de PyTorch e a compatibilidade do patch em ambiente separado
-  antes de publicação/entrada livre. Não alterar o ambiente da avaliação capturada.
-- Publicação do repo e vídeo de até 7 minutos ficam para a etapa de entrega.
+- Há um alerta Dependabot de severidade baixa no PyTorch. A correção não foi
+  aplicada para preservar o ambiente usado na avaliação capturada.
 
 <!-- PENDENTE-GATE-0008 -->
-### Texto a fechar após o gate E01–E20, até 25/10
+### Texto a fechar após o gate E01 a E20, até 25/10
 
 **Se a configuração por afirmação for adotada:** a resposta liga cada frase
 validada aos `review_id` correspondentes. Isso facilita localizar e corrigir
