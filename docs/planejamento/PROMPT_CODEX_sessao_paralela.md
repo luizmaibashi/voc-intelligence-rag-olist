@@ -22,11 +22,14 @@ sobre avaliações da Olist). Trabalhamos em três papéis, sem arquivo de troca
 4. Antes de agir: `git status --short --branch` e `git log -3 --oneline`. Preserve
    alterações que não são suas.
 
-## Estado (2026-10-20)
+## Estado (2026-10-20, 14:40Z)
 
-- Baseline entregável: tag `cfg-citacao-por-resposta`. Experimento citação por
-  afirmação com 263 testes (cliente falso). Hash do lote: `203ec986…fae3`.
-- Fase 1 de 19/10: 0 casos julgáveis, porque seu sandbox não resolve DNS (`ConnectError`).
+- Baseline entregável: tag `cfg-citacao-por-resposta`. Hash do lote: `203ec986…fae3`.
+- Fase 1 executada pelo Luiz em 20/10 (`reports/geracao_citacao_afirmacao_fase1_20261020.md`):
+  11/13 pareáveis julgáveis, 0 falhas de contrato. E02 e E18 sem saída por falha do
+  provedor (503/504/timeout). Cota de 20/10 UTC: 16/20.
+- Spec 0008, seção "Reenvio autorizado de E02 e E18" (`5d02457`, `56f5d5b`): um reenvio
+  extra de cada, ainda em 20/10 UTC; fase 2 só após os 13 concluídos e a partir de 00:00Z.
 - Marcos: gate ou abandono **25/10**; README/vídeo 29/10; entrega 31/10.
 - Regra fixada antes dos resultados (`9b4123e`): recusa onde o esperado era
   `respondida` reprova (perda de cobertura).
@@ -72,12 +75,13 @@ Saída de teste: resumo (contagem + falhas), nunca o log inteiro.
 
 ## Fila conhecida (aguarde o critério de aceite do Claude antes de começar)
 
-- Ficha de julgamento frase a frase em JSONL pré-preenchido (S/NS; motivos `TROCA`,
-  `EXTRAPOLA`, `COMPOSTA`, `SEM_BASE`), em script à parte, provando que o hash não muda.
-- Comandos da fase 1 no PC de casa (hash, DNS/TLS, `--reavaliar-falhas-locais` nos 10,
-  `--ids E14,E15,E18`), revisados para PS 5.1.
-- Pós-25/10: `liberacao.py:63`, onde o ledger ausente vira lista vazia (gate com lista
-  manual deve falhar, não aprovar).
+1. **REENVIO-02** (prioridade): critério vem na mensagem de abertura.
+2. **FICHA-01b**: `src/eval/ficha_julgamento.py` e `tests/test_ficha_julgamento.py` já
+   existem **sem commit** (sessão anterior; 277 testes; hash ok). Faltam só testes que matem
+   os sobreviventes de lógica: recusa esperada julgada S/NS, classes `nao_julgavel` + E20,
+   `continue→break` no resumo, NS com cada motivo, razão NS × `status_incompativel`, frase
+   sem `review_ids`. Não mexer nesses arquivos durante a REENVIO-02.
+3. Pós-25/10: `liberacao.py:63`, onde o ledger ausente vira lista vazia.
 
 Primeira resposta: confirme que leu os 4 itens de "Leia antes", resuma o estado em 5
 linhas e diga o que, na fila, você já vê como risco. Não altere nada ainda.
