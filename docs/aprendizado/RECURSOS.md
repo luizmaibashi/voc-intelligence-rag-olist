@@ -35,3 +35,9 @@ Fontes externas adicionais são verificadas antes da aula pertinente. Não extra
 - [Google — Gemini API, Structured output](https://ai.google.dev/gemini-api/docs/structured-output): suporta *subconjunto* do JSON Schema, `enum` para strings; em boas práticas: "While output is syntactically correct JSON, always validate values in your application" e tratar saídas "schema-compliant but semantically incorrect". A página não usa a palavra "garantia". Consultada 18/10/2026.
 - [Willard & Louf — Efficient Guided Generation for LLMs (arXiv 2307.09702, 2023)](https://arxiv.org/abs/2307.09702): geração reformulada como transições de máquina de estados finitos, guiada por regex/gramática sobre o vocabulário. Base do mecanismo de decodificação restrita (biblioteca Outlines). Resumo consultado 18/10/2026; não afirma como o Gemini implementa internamente.
 - `../../src/rag/provedor_gemini.py:9-17` (`SCHEMA_RESPOSTA`, `enum` de `status`) e `../../src/rag/responder.py:50` (citação dentro do contexto ≠ suporte semântico; docstring L1 e L27 declaram o limite).
+
+## Lição 0004 — classificador como gate, custo fixo × variável
+
+- Workshop Anwar Hermuche (17/10/2026): `raw/04_Agentic_Architectures/-raw-29_mentoria_anwar_arquitetura_ia/transcricao.md` L964–978 (regex não interpreta contexto; classificador pronto primeiro), L1055–1062 (roteador, gate de reembolso, guardrail; F1/precision/recall), L1069–1073 (mínimo de LLM; custo variável → fixo), L1077–1078 (classificador sem temperatura). Nome do classificador citado ("GER/GEV") incerto na transcrição.
+- [Google ML Crash Course — accuracy, precision, recall](https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall): definições TP/(TP+FP) e TP/(TP+FN); priorizar pelo custo de cada tipo de erro. Consultada 20/10/2026.
+- `../../src/rag/responder.py:35`: gate determinístico, zero evidências → `sem_evidencia` sem API (E20).

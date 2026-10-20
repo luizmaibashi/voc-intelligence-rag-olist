@@ -83,3 +83,17 @@ Origem: workshop Anwar Hermuche (17/10), ancorada em `temperature=0` de `src/rag
 - Baseline (registrado pelo Codex na spec 0008): Luiz previu ~4 falhas de contrato; observado **0/13** julgáveis na rodada 04 (IC95% Wilson 0%–22,8%). Superestimou falha de formato: o schema cumpre o que garante.
 - Configuração nova: **17/20** casos com todas as afirmações sustentadas; **N = 3** falhas de contrato.
 - A previsão `N = 3` cobre os 20 casos; não prevê em quais IDs as falhas ocorrerão. Se as três aparecerem nos 13 pareáveis, a primeira fase aciona abandono; caso contrário, aplica-se a parada total em cinco na segunda fase. A previsão não substitui o resultado nem o julgamento do gate.
+
+### Fase 1 julgada × previsões (20/10/2026)
+
+- Julgamento de Luiz, frase a frase (`reports/ficha_julgamento_fase1_20261020.jsonl`, `012d0f1`): **13/13** casos aprovados (IC95% Wilson 77,2%–100%); 12/12 frases S; 2/2 recusas adequadas (E14, E15); `N = 0/13` falhas de contrato.
+- Previsões: 9/9 S nos casos originais, acertou. Reenvio de E02 "volta com saída julgável", acertou (16:25Z, antes de rodar). E18 sem previsão. `N = 3` previsto para os 20 casos; 0 nos 13 pareáveis. Pergunta da sabatina pós-gate: por que esperava 3?
+- Em E18/1 hesitou porque a frase omite a demora. Explicado: suporte se julga **por frase**, completude **por caso**; separar elogio e crítica em duas afirmações é o que a spec pede. Manteve S.
+
+### Lição 0002 — retenção (20/10/2026)
+
+Pergunta sem aviso: "a banca pergunta se é reproduzível: duas frases". **Falhou.** Respondeu formato × verdade e auditoria frase a frase (auditabilidade, lição 0003), não reprodutibilidade. É a mesma confusão de 18/10 (lá com qualidade). Pista parcial no resumo anterior da conversa. Ensinado o trio reproduzível (hash + registro, spec 0007:39-50; `temperature=0` ≠ texto idêntico, ADR 0008:23) × qualidade (gate) × auditável (citação por afirmação). **Próxima verificação ≥ 22/10, com formulação nova.**
+
+### Lição 0004 — classificador como gate, custo fixo × variável (20/10/2026)
+
+Lição em `licoes/0004-classificador-gate-custo-fixo-variavel.html`. Previsão do equilíbrio (`F < v·N·b`) respondida certa, mas com texto idêntico ao feedback do botão: não conta como evidência. **Pendente, retomar por ela:** aplicação nova com `v` = R$ 0,05 (gate se paga? quanto? novo `N*`? por que modelo mais caro torna o gate mais atraente?). Gabarito: economia R$ 2.000 − R$ 1.500 = +R$ 500/mês; `N*` = 75 mil. Retenção não testada.
