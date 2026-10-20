@@ -85,6 +85,12 @@ O avaliador exige opção explícita `--reavaliar-falhas-locais` para os dez IDs
 
 **Checkpoint autorizado antes de desligar o PC:** Luiz pediu commit e push do código, testes, spec 0008, ADR 0008, `docs/aprendizado/MISSAO.md` e captura/diagnóstico da fase 1 de 19/10 UTC, ainda parcial. O commit deve ser identificado como checkpoint, sem declarar a fase concluída nem o gate aprovado. Antes de commitar, conferir que o hash do lote depende apenas do manifesto e configuração (incluindo schema, instrução e SDK), sem SHA de commit; recalcular a prévia após o commit e só fazer push se permanecer `203ec986dd98ec4550490df3b8418f5c42acf74187006b1767e2e52c3b76fae3`. Se mudar, parar e avisar antes do push. Após a fase 1 completa, registrar `N`, casos julgáveis, exclusões e IC95% na ADR/relatórios e fazer novo commit/push dos resultados. Não enviar API pela outra máquina: o ledger local de 20/dia UTC não é compartilhado pelo Git.
 
+## Reenvio autorizado de E02 e E18 por falha do provedor — 20/10/2026
+
+Fase 1 de 20/10 UTC (`reports/geracao_citacao_afirmacao_fase1_20261020.md`): 11/13 pareáveis julgáveis, `N_pareado = 0`. E02 (504/503, reenvio de 19/10 esgotado) e E18 (`ReadTimeout`/503, primeira execução) ficaram sem saída, com DNS e TLS ok: indisponibilidade do provedor, não rede local. Com dois pendentes, `N_pareado ≤ 2` em qualquer desfecho; o limiar de abandono da fase 1 não pode mais ser atingido.
+
+**Decisão de Luiz (2026-10-20T14:28Z, antes de qualquer resultado desses reenvios):** autoriza **um** reenvio adicional de E02 e de E18, sob o mesmo hash, contexto, SDK 1.75.0, política de duas tentativas e teto 20/dia UTC, na janela de 21/10 UTC, antes dos sete da fase 2. A trava de `avaliar_geracao.py` que exige os 13 pareáveis concluídos antes da fase 2 permanece. Se E02 ou E18 continuar sem saída, segue pendente: nenhum terceiro reenvio está autorizado e falha pendente em 25/10 mantém o gate não aprovado. O mecanismo exige opção própria, IDs fixos, captura de origem conferida por SHA-256 e contagem exata de envios anteriores no ledger (E02 = 2, E18 = 1); a opção de 19/10 (`--reavaliar-falhas-locais`) não é reaproveitada.
+
 ## Riscos e pontos a revisar na aprovação
 
 - **Acoplamento existente:** `review_ids` global aparece no CLI, avaliador, reavaliador E05 e testes. A nova estrutura exige revisão explícita desses consumidores; capturas antigas não devem ser reprocessadas como novas.
