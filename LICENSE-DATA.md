@@ -21,6 +21,7 @@ aparecem nos caminhos abaixo. Código original em `src/`, `tests/` e scripts
 segue a licença MIT em `LICENSE`.
 
 - `README.md` (exemplo com trechos de avaliações reais)
+- `docs/video/slides/slide1.png` (trecho de avaliação real)
 - `data/eval/geracao_casos.json`
 - `data/eval/julgamento.csv`
 - `data/eval/p09_triagem_agente.csv`
