@@ -27,6 +27,7 @@ segue a licença MIT em `LICENSE`.
 - `data/eval/p09_validacao_agente.csv`
 - `reports/conferencia_corpus_real_20261007.md`
 - `reports/demo_cli_20261017.md`
+- `reports/demo_cli_p15_20261021.md`
 - `reports/e05_reavaliacao_20261007_01.jsonl`
 - `reports/e05_reavaliacao_20261007_02.jsonl`
 - `reports/eda_olist.md`

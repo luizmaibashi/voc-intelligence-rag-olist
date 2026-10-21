@@ -28,9 +28,10 @@ estratégia RAG [R], recuperação [Rec], demo prática [D], exemplos de pergunt
 - **Bloco 7b:** E17 tem hipótese (pergunta negativa contra contrato por
   afirmação), não causa medida. Se falar do motivo, dizer "hipótese".
 
-- **Bloco 6 sem execução real no CLI.** P15 só foi verificada no lote curado
-  e no ensaio sintético. Opções: prévia + liberação de 1 chamada (orçamento) ou
-  usar a captura do lote curado, declarando a origem.
+- ~~**Bloco 6 sem execução real no CLI.**~~ Resolvido em 2026-10-21: prévia +
+  1 chamada liberada, `sem_evidencia` em 1 tentativa
+  (`reports/demo_cli_p15_20261021.md`). Na tela aparece a mensagem genérica da
+  aplicação; "relato não estabelece política" é fala, não saída do CLI.
 - **Espera de ~3 min dos vetores** na demo: cortar na edição ou gravar com saída
   já pronta, sem esconder que existe a espera (dizer em uma frase).
 - Slides dos blocos 1, 2 e 8: ferramenta e visual a decidir.
