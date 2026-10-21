@@ -38,6 +38,8 @@ segue a licença MIT em `LICENSE`.
 - `reports/geracao_citacao_afirmacao_f1_e14-e15-e18_20261020T1421.jsonl`
 - `reports/geracao_citacao_afirmacao_f1_e1_e02_20261020.jsonl`
 - `reports/geracao_citacao_afirmacao_fase1_20261019.jsonl`
+- `reports/geracao_citacao_afirmacao_fase2_lote1.jsonl`
+- `reports/geracao_citacao_afirmacao_fase2_lote2.jsonl`
 - `reports/geracao_reenvio_e02_20261020.jsonl`
 - `reports/geracao_reenvio_e18_20261020.jsonl`
 - `reports/integridade_busca_cache.md`
