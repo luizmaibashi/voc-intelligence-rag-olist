@@ -22,8 +22,10 @@ segue a licença MIT em `LICENSE`.
 
 - `README.md` (exemplo com trechos de avaliações reais)
 - `docs/video/slides/slide1.png` (trecho de avaliação real)
+- `data/eval/filtros_origem.csv`
 - `data/eval/geracao_casos.json`
 - `data/eval/julgamento.csv`
+- `data/eval/julgamento_filtros.csv`
 - `data/eval/p09_triagem_agente.csv`
 - `data/eval/p09_validacao_agente.csv`
 - `reports/conferencia_corpus_real_20261007.md`
@@ -34,6 +36,7 @@ segue a licença MIT em `LICENSE`.
 - `reports/eda_olist.md`
 - `reports/ficha_julgamento_fase1_20261020.jsonl`
 - `reports/ficha_julgamento_oficial_20261020.jsonl`
+- `reports/ganho_filtros_20261021.md`
 - `reports/geracao_20261006_evidencias.json`
 - `reports/geracao_citacao_afirmacao_f1_canario_e03_20261020T1356.jsonl`
 - `reports/geracao_citacao_afirmacao_f1_e04-e06-e07-e08_20261020T1408.jsonl`

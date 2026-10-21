@@ -80,6 +80,11 @@ Conferência do braço sem filtro: as 14 perguntas reproduzem o top-10 julgado d
 MiniLM (0 inéditas por texto; `review_id` igual em 139 de 140 posições, a diferença
 em P11 é texto repetido com outro representante).
 
+> Nota de 2026-10-21, depois da medição: a conferência acima foi superada. Por
+> `review_id`, a busca do produto sem filtro difere do top-10 julgado em P01
+> (2 avaliações) e P09 (1), porque o MiniLM diferencia maiúsculas. Detalhe na
+> seção Controles do [relatório](../../reports/ganho_filtros_20261021.md).
+
 | Pergunta | Filtro | Inéditas no top-10 |
 |---|---|---|
 | P01 | `situacao_entrega = 'atrasado'` | 4 |

@@ -217,7 +217,8 @@ e os limites da avaliação estão na [ADR 0002](docs/adr/0002-embedding-minilm-
 
 **Como os metadados melhoram a recuperação.** O MiniLM acha o assunto, mas não
 separa elogio de reclamação: "entrega rápida" e "entrega lenta" têm cosseno 0,76.
-O filtro por metadado vira `WHERE` na mesma consulta SQL e garante o lado. Medimos
+O filtro por metadado vira `WHERE` na mesma consulta SQL e restringe o top-10 ao
+recorte escolhido; em P09, o filtro de nota retirou as reclamações. Medimos
 nas 5 perguntas do gabarito cuja redação nomeia polaridade ou situação da entrega,
 com o filtro escolhido lendo a pergunta e a previsão registrada antes de rodar
 ([spec 0009](docs/spec/0009-ganho-filtros-metadados.md),
