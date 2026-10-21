@@ -214,6 +214,32 @@ na EDA e pytest executa os testes. As versões declaradas estão em
 
 MiniLM foi comparado com E5 e TF-IDF usando pooling e julgamento humano. A escolha
 e os limites da avaliação estão na [ADR 0002](docs/adr/0002-embedding-minilm-busca-exata-duckdb.md).
+
+**Como os metadados melhoram a recuperação.** O MiniLM acha o assunto, mas não
+separa elogio de reclamação: "entrega rápida" e "entrega lenta" têm cosseno 0,76.
+O filtro por metadado vira `WHERE` na mesma consulta SQL e garante o lado. Medimos
+nas 5 perguntas do gabarito cuja redação nomeia polaridade ou situação da entrega,
+com o filtro escolhido lendo a pergunta e a previsão registrada antes de rodar
+([spec 0009](docs/spec/0009-ganho-filtros-metadados.md),
+[relatório](reports/ganho_filtros_20261021.md)). Precisão@10 pela busca do produto:
+
+| Pergunta | Filtro | Sem filtro | Com filtro |
+|---|---|---|---|
+| P09: o que mais elogiam na entrega | `nota >= 4` | 0,6 | 1,0 |
+| P02: pedido que nunca chega | `situacao_entrega = nao_entregue` | 0,4 | 0,6 |
+| P01: reclamações de atraso | `situacao_entrega = atrasado` | 1,0 | 1,0 |
+| P10: clientes satisfeitos | `nota >= 4` | 1,0 | 1,0 |
+| P11: pontos das notas ruins | `nota <= 2` | 1,0 | 1,0 |
+
+Diferença média +0,12 (IC95% por bootstrap sobre as perguntas: +0,00 a +0,28;
+n = 5 perguntas, um anotador, 28 julgamentos cegos novos com 1 discordância em
+10 âncoras). Com n = 5 o intervalo é descritivo, não prova superioridade. Em P09,
+os 4 erros sem filtro eram reclamações de nota 1 ou 2; com o filtro, as 10 são
+elogio. O filtro de nota quase não perde relato relevante (23 de 24 conhecidos em
+P09). O de situação de entrega perde: só 4 de 14 relatos conhecidos de "não chegou"
+estão em pedidos marcados `nao_entregue`. Por isso: nota para polaridade; situação
+de entrega para recortar a população, sabendo que deixa relatos de fora.
+
 Similaridade ajuda a encontrar um relato; não prova que ele contém o fato pedido.
 Uma citação válida também não prova que a frase gerada tem suporte no comentário.
 O validador rejeita IDs inventados e respostas fora do contrato; quando falta
@@ -244,6 +270,7 @@ demonstração curada; não estima a confiabilidade em perguntas novas.
 |---|---|
 | Um documento por avaliação, com limpeza mínima | Preserva negação e metadados para conferir cada fonte; [ADR 0001](docs/adr/0001-corpus-limpeza-minima-sem-chunking.md). |
 | MiniLM e busca exata em DuckDB | A comparação de recuperação e o custo da indexação estão na [ADR 0002](docs/adr/0002-embedding-minilm-busca-exata-duckdb.md). |
+| Filtro de nota para polaridade | Embedding não separa elogio de reclamação; P09 de 0,6 para 1,0 com `nota >= 4` (n = 5 perguntas); [spec 0009](docs/spec/0009-ganho-filtros-metadados.md). |
 | Gemini com validação local de status e citações | ID fora do contexto invalida a resposta; suporte da frase exige julgamento humano; [ADR 0003](docs/adr/0003-geracao-gemini-e-validacao-de-evidencias.md). |
 | Contagem de atrasos no corpus inteiro | Top-k não fornece denominador de frequência; [ADR 0004](docs/adr/0004-contagem-atrasos.md). |
 | Classificação de elogios à entrega | Critérios e limites dos rótulos estão na [ADR 0005](docs/adr/0005-classificacao-elogios.md). |
@@ -280,8 +307,12 @@ residual de dados pessoais.
 - Dados de 2016 a 2018: não representam a operação atual da Olist.
 - Avaliações com comentário têm viés de autosseleção. IC95% não corrige esse viés.
 - Top-k recupera exemplos, não prevalência de um tema nem causa de reclamação.
-- Filtros de nota e situação estão implementados; período e categoria não são
-  filtros da entrada atual.
+- Filtros de nota e situação estão implementados e medidos em 5 perguntas;
+  período e categoria não são filtros da entrada atual. O filtro é escolhido
+  pelo usuário no CLI, não inferido da pergunta.
+- O 0,72 de Precisão@10 da ADR 0002 foi medido na busca usada no pooling; a busca
+  do produto difere por maiúsculas (P09 sem filtro: 0,6 contra 0,7). As outras
+  9 perguntas não foram remedidas na busca do produto.
 - P09 permanece congelado: só a liderança de prazo/rapidez foi liberada;
   ranking completo não foi aprovado.
 - Exemplos reais são demonstração (n = 3 perguntas no CLI, seleção intencional),
