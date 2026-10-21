@@ -112,6 +112,14 @@ antes da gravação.
   no Git). Um clone com outra configuração imprime outro hash para o mesmo código.
   Não afeta a segurança do envio; afeta a comparação de hashes entre máquinas.
 
+**Liberação para gravação (2026-10-21).** Luiz leu os 30 textos das prévias no
+ambiente `.venv/sdk175` (`google-genai` 1.75.0), com código em `e5c5782`, e
+liberou E-A `6af0221cf48250d3b1adb36065eaf09cb39923b75b6a7b3c2bc5d3c25bbbb35f`,
+E-B `66181a813bc3e0c6c82000721c6b1f395f78a773653182610c22502ab6ee9ea6`
+e P15 `49b17c88775fefa6a3747c7456b75fba2c05491164c40938893d167bcf501938`.
+Os 10 IDs de cada prévia são iguais, e na mesma ordem, aos dos envios anteriores.
+O envio ao Gemini fica para a gravação.
+
 ## Limites e riscos
 
 - Mudança de código depois da avaliação e antes da gravação. Mitigação: critérios
