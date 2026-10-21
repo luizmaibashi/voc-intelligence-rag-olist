@@ -59,6 +59,12 @@ escala que não existe aqui; NumPy puro resolve a busca, mas não demonstra arma
 **Se fizermos:** recuperação exata e rápida, filtros do desafio adicional em SQL, e o padrão é o mesmo
 do pgvector (vetor e metadado na mesma tabela, busca por `ORDER BY` de similaridade).
 
+**Nota de 2026-10-21 ([spec 0010](../spec/0010-cache-vetores-cli.md)).** A tabela DuckDB continua
+efêmera, montada a cada comando, mas os vetores das 42.174 avaliações passam a ter cache no CLI
+(`data/processed/emb_busca_minilm.npy`, fora do Git), com a mesma validação de identidade da
+spec 0005. Medido: 194 s na primeira execução, cerca de 21 s nas seguintes, top-10 idêntico ao
+da execução sem cache em E-A, E-B e P15. O cache dos textos distintos do pooling continua separado.
+
 ## 3. Consequências
 
 **Positivas**

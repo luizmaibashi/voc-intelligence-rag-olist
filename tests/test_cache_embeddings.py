@@ -9,6 +9,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.eval import pool_candidatos as pool
 from src.eval import calibrar_recusa as calibracao
+from src.retrieval import cache as cache_vetores
 
 
 class EncoderSintetico:
@@ -65,7 +66,7 @@ def test_cache_rejeita_modelo_configurado_alterado(ambiente, monkeypatch):
 def test_cache_rejeita_versao_da_biblioteca_alterada(ambiente, monkeypatch):
     _, modelo = ambiente
     pool.embeddings_docs("minilm", modelo, "", ["antigo"])
-    monkeypatch.setattr(pool, "version", lambda nome: "outra-versao")
+    monkeypatch.setattr(cache_vetores, "version", lambda nome: "outra-versao")
     pool.embeddings_docs("minilm", modelo, "", ["antigo"])
     assert len(modelo.chamadas) == 2
 

@@ -15,16 +15,14 @@ Saídas:
 - data/eval/pool_origem.csv (qual busca trouxe cada candidata, em que posição)
 - data/processed/emb_*.npy  (cache dos embeddings, regenerável)
 """
-import hashlib
-import json
-import logging
-from importlib.metadata import version
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+from src.retrieval.cache import vetores_com_cache
 
 RAIZ = Path(__file__).resolve().parents[2]
 CORPUS = RAIZ / "data" / "processed" / "corpus_reviews.parquet"
@@ -52,47 +50,9 @@ def textos_distintos(caminho: Path | None = None) -> pd.DataFrame:
 
 def embeddings_docs(nome: str, modelo: SentenceTransformer, prefixo: str, textos: list[str]) -> np.ndarray:
     """Cache vinculado aos textos ordenados e à configuração do encoder."""
-    identidade = {
-        "schema": 1,
-        "modelo": MODELOS[nome][0],
-        "prefixo": prefixo,
-        "normalize_embeddings": True,
-        "sentence_transformers": version("sentence-transformers"),
-        "dimensao": int(modelo.get_sentence_embedding_dimension()),
-        "textos_sha256": hashlib.sha256(
-            json.dumps(textos, ensure_ascii=False).encode("utf-8")
-        ).hexdigest(),
-    }
-    cache = RAIZ / "data" / "processed" / f"emb_{nome}.npy"
-    manifesto = cache.with_suffix(".json")
-    formato = (len(textos), identidade["dimensao"])
-    if cache.exists() or manifesto.exists():
-        try:
-            metadados = json.loads(manifesto.read_text(encoding="utf-8"))
-            if not isinstance(metadados, dict) or metadados.get("identidade") != identidade:
-                raise ValueError("identidade diferente ou manifesto inválido")
-            if metadados.get("vetores_sha256") != hashlib.sha256(cache.read_bytes()).hexdigest():
-                raise ValueError("vetores não correspondem ao manifesto")
-            emb = np.load(cache, allow_pickle=False)
-            if (emb.shape != formato or not np.issubdtype(emb.dtype, np.floating)
-                    or not np.isfinite(emb).all()
-                    or not np.allclose(np.linalg.norm(emb, axis=1), 1, atol=1e-4)):
-                raise ValueError("formato ou valores de embeddings inválidos")
-            return emb
-        except (OSError, ValueError, EOFError) as erro:
-            logging.getLogger(__name__).warning("Cache %s invalidado: %s; regenerando", cache.name, erro)
-    emb = np.asarray(modelo.encode([prefixo + t for t in textos], batch_size=128,
-                                   normalize_embeddings=True, show_progress_bar=True), dtype=np.float32)
-    if (emb.shape != formato or not np.isfinite(emb).all()
-            or not np.allclose(np.linalg.norm(emb, axis=1), 1, atol=1e-4)):
-        raise ValueError("encoder retornou embeddings incompatíveis ou não normalizados")
-    cache.parent.mkdir(parents=True, exist_ok=True)
-    np.save(cache, emb)
-    manifesto.write_text(json.dumps({
-        "identidade": identidade,
-        "vetores_sha256": hashlib.sha256(cache.read_bytes()).hexdigest(),
-    }, ensure_ascii=False, indent=2), encoding="utf-8")
-    return emb
+    return vetores_com_cache(RAIZ / "data" / "processed" / f"emb_{nome}.npy", modelo, textos,
+                             nome_modelo=MODELOS[nome][0], prefixo=prefixo,
+                             dimensao=modelo.get_sentence_embedding_dimension())
 
 
 def top_k(scores: np.ndarray) -> np.ndarray:

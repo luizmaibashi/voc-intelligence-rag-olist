@@ -17,11 +17,14 @@ from src.analytics.frequencia import contar_atrasos
 from src.rag import liberacao
 from src.rag.responder import responder
 from src.rag.tentativas import GeradorComTentativas
-from src.retrieval.indice import (MODELO, buscar, carregar_corpus,
+from src.retrieval.cache import vetores_com_cache
+from src.retrieval.indice import (DIM, MODELO, buscar, carregar_corpus,
                                   codificar_pergunta, criar_indice, gerar_vetores)
 
 RAIZ = Path(__file__).resolve().parents[1]
 REGISTRO_PADRAO = RAIZ / "data/demo/execucoes.jsonl"
+# Vetores de todas as linhas do corpus, em ordem; nunca o cache distinto do pooling (spec 0010).
+CACHE_VETORES = RAIZ / "data/processed/emb_busca_minilm.npy"
 PERGUNTA_ATRASOS = "O que os clientes relatam sobre entregas atrasadas?"
 PERGUNTA_POLITICA = "Qual é o prazo oficial de reembolso da Olist quando uma entrega atrasa?"
 LIMITES = ("Avaliações históricas com comentário; não representa todos os pedidos "
@@ -41,7 +44,8 @@ def quantificar(corpus: pd.DataFrame) -> dict:
 
 
 def recuperar(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
-              nota_min=None, nota_max=None, situacao_entrega=None) -> dict:
+              nota_min=None, nota_max=None, situacao_entrega=None,
+              cache_vetores: Path | None = None) -> dict:
     if not isinstance(pergunta, str) or not pergunta.strip():
         raise ValueError("Informe uma pergunta não vazia.")
     colunas = {"review_id", "texto", "nota", "situacao_entrega", "categorias"}
@@ -51,7 +55,11 @@ def recuperar(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
             lambda v: isinstance(v, str) and bool(v.strip())).all():
         raise ValueError("Corpus vazio ou comentário inválido.")
     # Índice efêmero preserva todas as linhas; filtros/deduplicação vivem em buscar.
-    vetores = gerar_vetores(corpus, modelo)
+    if cache_vetores is None:
+        vetores = gerar_vetores(corpus, modelo)
+    else:
+        vetores = vetores_com_cache(cache_vetores, modelo, corpus.texto.tolist(),
+                                    nome_modelo=MODELO, dimensao=DIM)
     with duckdb.connect() as con:
         criar_indice(con, corpus, vetores)
         achados = buscar(con, codificar_pergunta(modelo, pergunta), k=k,
@@ -123,12 +131,13 @@ def responder_cli(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
                   nota_min=None, nota_max=None, situacao_entrega=None,
                   executar: bool = False, aprovacao_sha256=None, gerador: str = "gemini",
                   registro: Path = REGISTRO_PADRAO, agora: datetime | None = None,
-                  criar_gerador=None) -> dict:
+                  criar_gerador=None, cache_vetores: Path | None = None) -> dict:
     """Prévia sem API por padrão; envio só com hash idêntico e orçamento disponível."""
     if gerador not in {"gemini", "falso"}:
         raise ValueError("Gerador deve ser gemini ou falso.")
     busca = recuperar(corpus, pergunta, modelo, k=k, nota_min=nota_min,
-                      nota_max=nota_max, situacao_entrega=situacao_entrega)
+                      nota_max=nota_max, situacao_entrega=situacao_entrega,
+                      cache_vetores=cache_vetores)
     evidencias = [{"review_id": f["review_id"], "texto": f["texto"]} for f in busca["fontes"]]
     base = {"pergunta": pergunta, "modelo_embedding": MODELO, "filtros": busca["filtros"],
             "contexto": busca["fontes"], "limites": LIMITES}
@@ -208,11 +217,13 @@ def main(argv=None) -> int:
                                   k=args.k, nota_min=args.nota_min, nota_max=args.nota_max,
                                   situacao_entrega=args.situacao_entrega, executar=args.executar,
                                   aprovacao_sha256=args.aprovacao_sha256, gerador=args.gerador,
-                                  registro=REGISTRO_PADRAO, criar_gerador=_criar_gerador)
+                                  registro=REGISTRO_PADRAO, criar_gerador=_criar_gerador,
+                                  cache_vetores=CACHE_VETORES)
         else:
             saida = recuperar(carregar_corpus(args.corpus), args.pergunta, carregar_modelo(),
                               k=args.k, nota_min=args.nota_min, nota_max=args.nota_max,
-                              situacao_entrega=args.situacao_entrega)
+                              situacao_entrega=args.situacao_entrega,
+                              cache_vetores=CACHE_VETORES)
         print(json.dumps(saida, ensure_ascii=False, indent=2, allow_nan=False))
         return 0
     except liberacao.EnvioBloqueado as erro:
