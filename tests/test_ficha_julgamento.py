@@ -3,11 +3,64 @@ import json
 
 import pytest
 
+from src.eval import ficha_julgamento
 from src.eval.ficha_julgamento import gerar, resumir, validar
 
 
 def _escrever(caminho, linhas):
     caminho.write_text("".join(json.dumps(l, ensure_ascii=False) + "\n" for l in linhas), encoding="utf-8")
+
+
+def test_main_gate_aberto_pendente_reprovado_e_fechado(tmp_path, monkeypatch, capsys):
+    manifesto = tmp_path / "manifesto.json"
+    manifesto.write_text(json.dumps({"casos": [
+        {"id": cid, "status_esperados": ["respondida"]} for cid in ("E01", "E02")]}), encoding="utf-8")
+    monkeypatch.setattr(ficha_julgamento, "MANIFESTO", manifesto)
+    # O default de validar é ligado na definição; main recebe a dependência via wrapper.
+    validar_original = ficha_julgamento.validar
+    monkeypatch.setattr(ficha_julgamento, "validar", lambda caminho: validar_original(caminho, manifesto))
+    ficha = tmp_path / "ficha.jsonl"
+    linhas = [{"id": "E02", "tipo": "frase", "ordem": 1, "frase": "x",
+               "status_esperados": ["respondida"], "julgamento": "S", "motivo": None}]
+    _escrever(ficha, linhas)
+    assert ficha_julgamento.main(["--validar", str(ficha)]) == 4
+    assert "gate: aberto" in capsys.readouterr().out
+    linhas.insert(0, {**linhas[0], "id": "E01", "julgamento": "NS", "motivo": "SEM_BASE"})
+    _escrever(ficha, linhas)
+    assert ficha_julgamento.main(["--validar", str(ficha)]) == 4
+    linhas[0].update(julgamento="S", motivo=None)
+    _escrever(ficha, linhas)
+    assert ficha_julgamento.main(["--validar", str(ficha)]) == 0
+    assert "gate: fechado" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("valor,aprovados,motivo", [
+    (None, 0, None), ("S", 1, "aprovado"), ("NS", 0, "controle_reprovado")])
+def test_controle_local_julgamento(tmp_path, valor, aprovados, motivo):
+    ficha, linhas, manifesto, _ = _ficha(tmp_path)
+    linhas = [linhas[3]]
+    linhas[0]["julgamento_controle"] = valor
+    _escrever(ficha, linhas)
+    resumo = validar(ficha, manifesto)
+    assert resumo["aprovados"] == aprovados
+    assert resumo["n_julgados"] == (valor is not None)
+    assert (resumo["resultados"][0]["motivo"] if valor else None) == motivo
+
+
+def test_controle_valor_invalido_e_campo_em_falha(tmp_path):
+    ficha, linhas, manifesto, _ = _ficha(tmp_path)
+    linhas = [linhas[3]]
+    linhas[0]["julgamento_controle"] = "X"
+    _escrever(ficha, linhas)
+    with pytest.raises(ValueError, match="julgamento_controle"):
+        validar(ficha, manifesto)
+    linhas[0].update(id="E01", classe="falha_servico", julgamento_controle="S",
+                     status_esperados=["respondida"])
+    _escrever(ficha, linhas)
+    with pytest.raises(ValueError, match="julgamento_controle"):
+        validar(ficha, manifesto)
+    linhas[0].pop("julgamento_controle")
+    assert resumir(linhas)["pendentes"] == ["E01"]
 
 
 def _manifesto(tmp_path):
@@ -55,6 +108,7 @@ def test_gera_frases_fontes_integrais_recusa_e_controle(tmp_path):
     assert linhas[2]["status_esperados"] == ["respondida"]
     assert linhas[3]["tipo"] == "nao_julgavel"
     assert linhas[3]["classe"] == "controle_local"
+    assert "julgamento_controle" in linhas[3] and linhas[3]["julgamento_controle"] is None
     assert len(ficha.read_text(encoding="utf-8").splitlines()) == 4
 
 

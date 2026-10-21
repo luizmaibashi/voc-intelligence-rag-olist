@@ -40,8 +40,9 @@ Não apertar Ctrl+C durante uma chamada: deixa envio sem resultado no ledger.
 Depois: gerar ficha **nova** (`--saida` recusa sobrescrever) com todas as capturas:
 `reports/geracao_citacao_afirmacao_fase1_20261019.jsonl`, `reports/geracao_citacao_afirmacao_f1_*20261020*.jsonl`,
 `reports/geracao_reenvio_e02_20261020.jsonl`, `reports/geracao_reenvio_e18_20261020.jsonl` e os dois lotes da fase 2.
-O gerador usa a captura mais recente por caso e sai **sem julgamento**: copiar os
-13 julgamentos de `reports/ficha_julgamento_fase1_20261020.jsonl` por
-`(id, ordem)`, conferindo que `frase` é idêntica (se diferir, parar). Só então
-julgar os 7 novos frase a frase e rodar
-`python -m src.eval.ficha_julgamento --validar <ficha>` (gate = 20/20).
+O gerador usa a captura mais recente por caso e sai **sem julgamento**. Copiar os
+13 julgamentos com `python scripts/copiar_julgamentos.py reports/ficha_julgamento_fase1_20261020.jsonl <ficha_nova> <ficha_com_julgamentos>`;
+o script confere `(id, ordem)` e frase idêntica antes de gravar. Julgar os sete
+casos restantes, incluindo `julgamento_controle` de E20, e rodar
+`python -m src.eval.ficha_julgamento --validar <ficha>`: código 0 fecha o gate
+em 20/20 aprovados; código 4 mantém o gate aberto por pendência ou reprovação.

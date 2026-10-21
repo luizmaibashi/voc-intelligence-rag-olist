@@ -41,7 +41,8 @@ def gerar(capturas: list[Path], saida: Path, manifesto: Path = MANIFESTO) -> lis
         base = {"id": cid, "status": status, "status_esperados": caso["status_esperados"]}
         classe = registro.get("classe_operacional")
         if cid == "E20" or classe in {"falha_servico", "falha_integracao", "falha_contrato", "truncamento_observado"} or status not in {"respondida", "sem_evidencia"}:
-            linhas.append({**base, "tipo": "nao_julgavel", "classe": "controle_local" if cid == "E20" else (classe or "saida_invalida")})
+            linhas.append({**base, "tipo": "nao_julgavel", "classe": "controle_local" if cid == "E20" else (classe or "saida_invalida"),
+                           **({"julgamento_controle": None} if cid == "E20" else {})})
         elif status == "sem_evidencia":
             linhas.append({**base, "tipo": "sem_evidencia", "julgamento_caso": None})
         else:
@@ -75,9 +76,12 @@ def resumir(linhas: list[dict], ids_esperados: set[str] | None = None) -> dict:
             raise ValueError(f"Tipos misturados no caso {cid}")
         tipo = grupo[0]["tipo"]
         if tipo == "nao_julgavel":
-            pendentes.append(cid)
-            continue
-        if tipo == "frase":
+            if grupo[0].get("classe") != "controle_local" or grupo[0].get("julgamento_controle") is None:
+                pendentes.append(cid)
+                continue
+            passou = grupo[0]["julgamento_controle"] == "S"
+            razao = "controle_reprovado"
+        elif tipo == "frase":
             if any(l["julgamento"] is None for l in grupo):
                 pendentes.append(cid)
                 continue
@@ -126,7 +130,13 @@ def validar(caminho: Path, manifesto: Path = MANIFESTO) -> dict:
         elif tipo == "sem_evidencia":
             if linha.get("julgamento_caso") not in {"S", "NS"}:
                 raise ValueError(f"Recusa sem julgamento válido: {linha.get('id')}")
-        elif tipo != "nao_julgavel":
+        elif tipo == "nao_julgavel":
+            if linha.get("classe") == "controle_local":
+                if linha.get("julgamento_controle") not in {None, "S", "NS"}:
+                    raise ValueError(f"julgamento_controle inválido: {cid}")
+            elif "julgamento_controle" in linha:
+                raise ValueError(f"julgamento_controle só vale para controle_local: {cid}")
+        else:
             raise ValueError(f"Tipo desconhecido: {tipo}")
     return resumir(linhas, set(casos_manifesto))
 
@@ -149,6 +159,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{resumo['aprovados']}/{resumo['n_julgados']} aprovados; pendentes: {', '.join(resumo['pendentes']) or 'nenhum'}")
         for resultado in resumo["resultados"]:
             print(f"{resultado['id']}: {resultado['motivo']}")
+        reprovados = [r["id"] for r in resumo["resultados"] if r["motivo"] != "aprovado"]
+        fechado = not resumo["pendentes"] and not reprovados and resumo["aprovados"] == resumo["n_julgados"] == len(json.loads(MANIFESTO.read_text(encoding="utf-8"))["casos"])
+        print("gate: fechado" if fechado else f"gate: aberto (pendentes: {', '.join(resumo['pendentes']) or 'nenhum'}; reprovados: {', '.join(reprovados) or 'nenhum'})")
+        return 0 if fechado else 4
     return 0
 
 
