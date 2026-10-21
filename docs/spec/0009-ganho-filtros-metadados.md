@@ -1,6 +1,8 @@
 # Spec 0009 — Ganho dos filtros de metadados na recuperação
 
-**Data:** 2026-10-21. **Status:** aprovada por Luiz em 2026-10-21; aguardando previsão (seção 4) antes de medir.
+**Data:** 2026-10-21. **Status:** executada em 2026-10-21. Desfecho A, igual ao previsto; resultado em
+`reports/ganho_filtros_20261021.md`. Divergências do plano: 18 inéditas em vez de 16
+(a busca do produto difere do pooling por maiúsculas em P01 e P09) e 28 julgamentos.
 **Dono da aprovação:** Luiz Maibashi. **Prazo da entrega:** 2026-10-31.
 
 ## Pergunta de negócio

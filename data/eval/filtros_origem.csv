@@ -1,0 +1,121 @@
+﻿id_pergunta;braco;posicao;review_id;texto;nota;freq_texto;score
+P01;exploratorio;1;da019fba5d8be9427b00678f9cc80f51;recomendaria só que ate o momento estou insatisfeita com a demora na entrega;2;1;0.8126479387283325
+P01;exploratorio;2;7c4c2d10a57d4aab58a570a5a8ac9f2c;Gostaria de esclarecimentos acerca da entrega que está em atraso;1;1;0.7952100038528442
+P01;exploratorio;3;f02d4978f58368f3346d8450d52f0ba2;Pessimo muita demora na entrega;1;1;0.7913668155670166
+P01;exploratorio;4;0fc42b14539f4177f534382d69d82d3c;demora na entrega;1;6;0.786306619644165
+P01;exploratorio;5;a94eee8faad95408cd413c7cd3d1caa0;demora na entrega .;1;1;0.7709964513778687
+P01;exploratorio;6;0cb2d7fbb08a0101626ab961a0be6557;muita demora na entrega;2;5;0.76944899559021
+P01;exploratorio;7;91c3523eb116609c5e674ea0fca34bf4;muita demora na entrega, não dão satisfação;1;1;0.7647849321365356
+P01;exploratorio;8;7528a396f7625967f05cb09946286608;Ultimamente estão atrasando muito as entregas;1;1;0.7623034715652466
+P01;exploratorio;9;7eaac7481400e495ddfc2f5398aba896;A entrega esta atrasada.;1;1;0.7607235312461853
+P01;exploratorio;10;045d330f147f09c3bd2426266ec5d414;Nao tem boa avaliação por atraso na entrega;1;1;0.7606801390647888
+P01;primario;1;7c4c2d10a57d4aab58a570a5a8ac9f2c;Gostaria de esclarecimentos acerca da entrega que está em atraso;1;1;0.7952100038528442
+P01;primario;2;0fc42b14539f4177f534382d69d82d3c;demora na entrega;1;6;0.786306619644165
+P01;primario;3;dd6e0f7168d75cd78769333f7630a036;O atraso na entrega prejudicou a obra;3;1;0.7786224484443665
+P01;primario;4;65e3d04aef73660b0b2145ef3d5762cd;A entrega atrasou;5;1;0.7750385999679565
+P01;primario;5;91c3523eb116609c5e674ea0fca34bf4;muita demora na entrega, não dão satisfação;1;1;0.7647849321365356
+P01;primario;6;7528a396f7625967f05cb09946286608;Ultimamente estão atrasando muito as entregas;1;1;0.7623034715652466
+P01;primario;7;7eaac7481400e495ddfc2f5398aba896;A entrega esta atrasada.;1;1;0.7607235312461853
+P01;primario;8;72926e5236768ffc912764ca429d0e00;Muita demora na entrega;1;5;0.7597464323043823
+P01;primario;9;35d70a9ae74fa7c6bc01125f3ef0f04b;demora com a entrega;2;1;0.7548942565917969
+P01;primario;10;6a24fdb69a1596a14f8ebe8386855576;Não é a primeira vez de atraso na entrega, quando consegue falar a atendente ainda pede um prazo de dois dias, fora o atraso, infelizmente as mudanças de entrega dos parceiros não está sendo pratica;1;1;0.7528937458992004
+P01;sem_filtro;1;da019fba5d8be9427b00678f9cc80f51;recomendaria só que ate o momento estou insatisfeita com a demora na entrega;2;1;0.8126479387283325
+P01;sem_filtro;2;7c4c2d10a57d4aab58a570a5a8ac9f2c;Gostaria de esclarecimentos acerca da entrega que está em atraso;1;1;0.7952100038528442
+P01;sem_filtro;3;f02d4978f58368f3346d8450d52f0ba2;Pessimo muita demora na entrega;1;1;0.7913668155670166
+P01;sem_filtro;4;0fc42b14539f4177f534382d69d82d3c;demora na entrega;1;6;0.786306619644165
+P01;sem_filtro;5;dd6e0f7168d75cd78769333f7630a036;O atraso na entrega prejudicou a obra;3;1;0.7786224484443665
+P01;sem_filtro;6;65e3d04aef73660b0b2145ef3d5762cd;A entrega atrasou;5;1;0.7750385999679565
+P01;sem_filtro;7;a94eee8faad95408cd413c7cd3d1caa0;demora na entrega .;1;1;0.7709964513778687
+P01;sem_filtro;8;0cb2d7fbb08a0101626ab961a0be6557;muita demora na entrega;2;5;0.76944899559021
+P01;sem_filtro;9;91c3523eb116609c5e674ea0fca34bf4;muita demora na entrega, não dão satisfação;1;1;0.7647849321365356
+P01;sem_filtro;10;7528a396f7625967f05cb09946286608;Ultimamente estão atrasando muito as entregas;1;1;0.7623034715652466
+P02;primario;1;e5391a94a0c6a03f9304cd1069587ac3;Nao entrega o pedido no prazo certo;3;1;0.7427314519882202
+P02;primario;2;c90ed8edbeee3aa2dfaab7214253df12;Prestou atendimento quando solicitado.. mas demora na resolução do mesmo.;3;1;0.7157255411148071
+P02;primario;3;4839daa67e1328de5155d092c2614d21;gostaria de saber o por que os pedidos não chegam no prazo;1;1;0.6920934319496155
+P02;primario;4;d6a5ec076e4c05013876308faf6cdc8b;Total falta de respeito com o consumidor. Além de não realizar a entrega que tinha um prazo enorme, ao longo do período, pedi mais detalhes do status para acompanhar o processo e nunca ligaram.;1;1;0.6297796964645386
+P02;primario;5;dbf78eb5345c4b811419952df0d29b33;Entrega não realizada, sem nenhun atendimento útil que nos informassem quando a entrega será feita, 100% de descaso e completa falta de comprometimento. Protocolos abertos sem resposta alguma. Nota 0!;1;1;0.6141415238380432
+P02;primario;6;a93ccadd9d8a695ceb12a9e8ee0daf6e;Ainda aguardando entrega do pedido. Necessito solução urgente.;1;1;0.6045525074005127
+P02;primario;7;1b30acf4a3bc38694ede93b1c8a24221;meus caros ainda estou esperando a entrega do meu pedido e ainda não recebi e isso faz 40 dias;1;1;0.6038967370986938
+P02;primario;8;4027f776143a17e124f41a9ec1559f00;Produto não recebido. Produto ainda não recebido mesmo passado o prazo de entrega. Aguardando resposta do vendedor.;1;1;0.5998322367668152
+P02;primario;9;0cb2d7fbb08a0101626ab961a0be6557;muita demora na entrega;2;5;0.5955634117126465
+P02;primario;10;f4cdc4e4fe23bb806b124ec96afbbb11;não foi entregue no prazo. sem conseguir acessar a área de cancelamento do pedido;1;1;0.5904187560081482
+P02;sem_filtro;1;e5391a94a0c6a03f9304cd1069587ac3;Nao entrega o pedido no prazo certo;3;1;0.7427314519882202
+P02;sem_filtro;2;c90ed8edbeee3aa2dfaab7214253df12;Prestou atendimento quando solicitado.. mas demora na resolução do mesmo.;3;1;0.7157255411148071
+P02;sem_filtro;3;4839daa67e1328de5155d092c2614d21;gostaria de saber o por que os pedidos não chegam no prazo;1;1;0.6920934319496155
+P02;sem_filtro;4;e6514bfb990b35522784418f8e227ae8;Pedido ainda não foi totalmente entregue. Continuo aguardando pois ainda não expirou o prazo de entrega.;3;1;0.679396390914917
+P02;sem_filtro;5;433295438d1a1b4d1655d6cec93251c5;Ainda falta entregar um pedido;3;1;0.6792131066322327
+P02;sem_filtro;6;7352a0ac71b8e800d974964de2df27c7;Entrega/devolução. Pedido entregue incompleto, não cumpriu prazo de entrega ,devolução sem sucesso até momento;1;1;0.6717880964279175
+P02;sem_filtro;7;93070d6a76f6affb41c1e64d7fc6230f;Muita demora do pedido.;1;1;0.6707165241241455
+P02;sem_filtro;8;d0dad1cda5714e5e94b70fb5243349a6;Pedido e entrega sem detalhes;2;1;0.6636154651641846
+P02;sem_filtro;9;14b33ac24083bd93da570659da1630af;Pedido não entregue (prazo de entrega não obedecido);1;1;0.6596095561981201
+P02;sem_filtro;10;be3db85fbf93c6d04f28a20788c55ecb;entrega fora do prazo;3;1;0.6554228663444519
+P09;exploratorio;1;2ee2b576d576d98fb1402a4dd36784d9;Otima compra e entrega.;5;1;0.7805510759353638
+P09;exploratorio;2;6a817364a1bb1e3a0f509ad6ee9259e5;Nota dez. Ótima emoresa coerente com o serviço de entrega e também com os produtos;5;1;0.7529289126396179
+P09;exploratorio;3;949eca021ed60d00a2d2bda3cc686d4d;muitos desencontros nas entregas de produtos;1;1;0.7336921095848083
+P09;exploratorio;4;6c612bde41f4ce34be1b41efb17aa695;Prazo cumprido, qualidade presente entrega o que vende;5;1;0.7332144975662231
+P09;exploratorio;5;8e7671238b8e7faa231295707ecf3d96;Tudo certo com a entrega e com a mercadoria;5;1;0.7306093573570251
+P09;exploratorio;6;ff0907325dad0c0a623b94ce7c9ea7fe;otima. otima compra entrega rapida;5;1;0.7266744375228882
+P09;exploratorio;7;e8a7de56575f45bfff67b585209c037f;Prazo de entrega;1;1;0.7217516303062439
+P09;exploratorio;8;e203d589007409e506b8ac99b998b36d;Ótima compra e entrega pe;5;1;0.7204895615577698
+P09;exploratorio;9;2dd34def12de8a6cb25b35e7399f32b6;Tanto na compra, quanto na entrega tudo certo . obrigado .;5;1;0.7190086245536804
+P09;exploratorio;10;97b1c66cd7fc0a9e984d1435de5189be;Demora na entrega;1;6;0.718640923500061
+P09;primario;1;2ee2b576d576d98fb1402a4dd36784d9;Otima compra e entrega.;5;1;0.7805510759353638
+P09;primario;2;6a817364a1bb1e3a0f509ad6ee9259e5;Nota dez. Ótima emoresa coerente com o serviço de entrega e também com os produtos;5;1;0.7529289126396179
+P09;primario;3;6c612bde41f4ce34be1b41efb17aa695;Prazo cumprido, qualidade presente entrega o que vende;5;1;0.7332144975662231
+P09;primario;4;8e7671238b8e7faa231295707ecf3d96;Tudo certo com a entrega e com a mercadoria;5;1;0.7306093573570251
+P09;primario;5;ff0907325dad0c0a623b94ce7c9ea7fe;otima. otima compra entrega rapida;5;1;0.7266744375228882
+P09;primario;6;e203d589007409e506b8ac99b998b36d;Ótima compra e entrega pe;5;1;0.7204895615577698
+P09;primario;7;2dd34def12de8a6cb25b35e7399f32b6;Tanto na compra, quanto na entrega tudo certo . obrigado .;5;1;0.7190086245536804
+P09;primario;8;99de5dda8fe3aab4eb01d51176fc9146;Otima compra e a entrega super rapida...;5;1;0.7172806262969971
+P09;primario;9;37c35442208c3077f15ff19e742e0c3e;Satisfeito com a entrega... atendimento e produto;5;1;0.7120501399040222
+P09;primario;10;974a0b4a3b6493b26c3d3e85230cf22f;Tudo certo com a compra e entrega;5;1;0.7072752118110657
+P09;sem_filtro;1;2ee2b576d576d98fb1402a4dd36784d9;Otima compra e entrega.;5;1;0.7805510759353638
+P09;sem_filtro;2;a0c63682a960eb52adde9feaf9c9b3b7;Demora na entrega do produto;1;2;0.7621961236000061
+P09;sem_filtro;3;6a817364a1bb1e3a0f509ad6ee9259e5;Nota dez. Ótima emoresa coerente com o serviço de entrega e também com os produtos;5;1;0.7529289126396179
+P09;sem_filtro;4;e5c5ab4551f6e5488908dc27257e27be;Solicito entrega da mercadoria;1;1;0.7365170121192932
+P09;sem_filtro;5;949eca021ed60d00a2d2bda3cc686d4d;muitos desencontros nas entregas de produtos;1;1;0.7336921095848083
+P09;sem_filtro;6;6c612bde41f4ce34be1b41efb17aa695;Prazo cumprido, qualidade presente entrega o que vende;5;1;0.7332144975662231
+P09;sem_filtro;7;8e7671238b8e7faa231295707ecf3d96;Tudo certo com a entrega e com a mercadoria;5;1;0.7306093573570251
+P09;sem_filtro;8;ff0907325dad0c0a623b94ce7c9ea7fe;otima. otima compra entrega rapida;5;1;0.7266744375228882
+P09;sem_filtro;9;fbd9cc5a7770c84243e9701ac9ac2309;Demorando muito a entrega;2;1;0.7223986387252808
+P09;sem_filtro;10;e8a7de56575f45bfff67b585209c037f;Prazo de entrega;1;1;0.7217516303062439
+P10;primario;1;7cde8d21243a997106a2ae5149b39627;Produto recebido com conforme anunciado. Cliente satisfeito.;5;1;0.7908555269241333
+P10;primario;2;d7571a8910cfc6319c8acbba887fd33b;"Nota 10. Comprometimento e dedicação com o cliente.por isso indico pra quem está com alguma dúvida referente a loja;e sobre o produto atingiu perfeitamente as minhas perspectivas.";5;1;0.7664579153060913
+P10;primario;3;632875343f30c00c188ebdbb4b719a5d;Satisfeita com o atendimento e com o produto.;5;1;0.7644740343093872
+P10;primario;4;76df0bd8c9d614662a1e893152b4741f;Produto de qualidade! Compromisso com o cliente e qualidade no produto resumem essa compra.;5;1;0.7631720900535583
+P10;primario;5;c8f6b3911af91c8111e98676d42c1a45;Ótimo produto e compromisso com o cliente.;5;1;0.7620928883552551
+P10;primario;6;2952897fd29fff9a6fde9658a8062ab5;Excelente 👍🏽. Respeito ao cliente, qualidade, satisfação. Cliente Feliz!!!;5;1;0.7619143724441528
+P10;primario;7;6700c55e0a9a5c133625336faad5612d;Muito Satisfeita com a compra e com o produto;5;1;0.7602255344390869
+P10;primario;8;f6853e4f1d0f639a934b661f2787aa6f;Parabéns pelo compromisso com os clientes;5;1;0.7540283799171448
+P10;primario;9;79cc05eda94c425c9324bddccd8ac8d1;Parabéns pelo respeito ao consumidor, sempre comunicando o caminho do produto, prazo de entrega e o produto entregue corretamente.;5;1;0.7530353665351868
+P10;primario;10;f53576229f5b4a127801b2c126ccf31f;Excelênte. O produto chegou até antes do prazo,estou satisfeitissímo.Obrigado,continuem assim,tenho certeza que conquistarão mais e mais clientes.Muito obrigado pela atenção.;5;1;0.7485541701316833
+P10;sem_filtro;1;7cde8d21243a997106a2ae5149b39627;Produto recebido com conforme anunciado. Cliente satisfeito.;5;1;0.7908555269241333
+P10;sem_filtro;2;d7571a8910cfc6319c8acbba887fd33b;"Nota 10. Comprometimento e dedicação com o cliente.por isso indico pra quem está com alguma dúvida referente a loja;e sobre o produto atingiu perfeitamente as minhas perspectivas.";5;1;0.7664579153060913
+P10;sem_filtro;3;632875343f30c00c188ebdbb4b719a5d;Satisfeita com o atendimento e com o produto.;5;1;0.7644740343093872
+P10;sem_filtro;4;76df0bd8c9d614662a1e893152b4741f;Produto de qualidade! Compromisso com o cliente e qualidade no produto resumem essa compra.;5;1;0.7631720900535583
+P10;sem_filtro;5;c8f6b3911af91c8111e98676d42c1a45;Ótimo produto e compromisso com o cliente.;5;1;0.7620928883552551
+P10;sem_filtro;6;2952897fd29fff9a6fde9658a8062ab5;Excelente 👍🏽. Respeito ao cliente, qualidade, satisfação. Cliente Feliz!!!;5;1;0.7619143724441528
+P10;sem_filtro;7;6700c55e0a9a5c133625336faad5612d;Muito Satisfeita com a compra e com o produto;5;1;0.7602255344390869
+P10;sem_filtro;8;f6853e4f1d0f639a934b661f2787aa6f;Parabéns pelo compromisso com os clientes;5;1;0.7540283799171448
+P10;sem_filtro;9;79cc05eda94c425c9324bddccd8ac8d1;Parabéns pelo respeito ao consumidor, sempre comunicando o caminho do produto, prazo de entrega e o produto entregue corretamente.;5;1;0.7530353665351868
+P10;sem_filtro;10;f53576229f5b4a127801b2c126ccf31f;Excelênte. O produto chegou até antes do prazo,estou satisfeitissímo.Obrigado,continuem assim,tenho certeza que conquistarão mais e mais clientes.Muito obrigado pela atenção.;5;1;0.7485541701316833
+P11;primario;1;68160ba199e9b65869c10aca2d695704;Caro e de péssima qualidade.;2;1;0.6372913122177124
+P11;primario;2;92fc88d99622e08c0975b8649358ff0e;Achei de péssima qualidade;2;1;0.6348150968551636
+P11;primario;3;1060d56dcc60ee8aac9cc1e5880c2bf2;produto ruim. produto de má qualidade;1;1;0.634637713432312
+P11;primario;4;0a18dc9b77e58490b51d75a5b97ad30d;Acabamento ruim e estampa errada.;1;1;0.6260589361190796
+P11;primario;5;a57a2cd52adcc6244bf34fb39afe70f5;Loja muito ruim;1;1;0.6227458715438843
+P11;primario;6;629a83b85a131bc017dd8c31a2b54043;Qualidade muito ruim. Não encaixa.pessimo;2;1;0.617892861366272
+P11;primario;7;4d608fd4c61ba28cd812542e929f1056;Pessimo;1;3;0.6167577505111694
+P11;primario;8;8f28504ad064a22758b7ae037d5afb09;pessima;1;2;0.612287700176239
+P11;primario;9;880200d91a24cc64bef464404079d4bd;Horrivel pessimo;1;1;0.6054062843322754
+P11;primario;10;5fd33381e99f3af28abc173071bb74ad;péssimo;1;6;0.6023647785186768
+P11;sem_filtro;1;68160ba199e9b65869c10aca2d695704;Caro e de péssima qualidade.;2;1;0.6372913122177124
+P11;sem_filtro;2;92fc88d99622e08c0975b8649358ff0e;Achei de péssima qualidade;2;1;0.6348150968551636
+P11;sem_filtro;3;1060d56dcc60ee8aac9cc1e5880c2bf2;produto ruim. produto de má qualidade;1;1;0.634637713432312
+P11;sem_filtro;4;0a18dc9b77e58490b51d75a5b97ad30d;Acabamento ruim e estampa errada.;1;1;0.6260589361190796
+P11;sem_filtro;5;a57a2cd52adcc6244bf34fb39afe70f5;Loja muito ruim;1;1;0.6227458715438843
+P11;sem_filtro;6;4a155ca9ea30165d7673c5f7e2e5e87a;prazos corretos. produto de péssima qualidade.;5;1;0.6194961071014404
+P11;sem_filtro;7;629a83b85a131bc017dd8c31a2b54043;Qualidade muito ruim. Não encaixa.pessimo;2;1;0.617892861366272
+P11;sem_filtro;8;4d608fd4c61ba28cd812542e929f1056;Pessimo;1;3;0.6167577505111694
+P11;sem_filtro;9;908d297d43a46323fcb79f34803de385;O zíper é de má qualidade;3;1;0.614831268787384
+P11;sem_filtro;10;8f28504ad064a22758b7ae037d5afb09;pessima;1;2;0.612287700176239

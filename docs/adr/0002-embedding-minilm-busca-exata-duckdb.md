@@ -88,7 +88,14 @@ do pgvector (vetor e metadado na mesma tabela, busca por `ORDER BY` de similarid
 
 **Métricas de sucesso**
 - Teste: top-10 do DuckDB igual ao do NumPy (scores com tolerância) em todas as perguntas do gabarito.
-- Precisão@10 do MiniLM com filtro por metadado maior que sem filtro nas perguntas com polaridade (P09, P10).
+- ~~Precisão@10 do MiniLM com filtro por metadado maior que sem filtro nas perguntas com polaridade (P09, P10).~~
+  Mal formulada: P10 já estava em 1,0 sem filtro (efeito teto). Substituída em 2026-10-21 pela
+  regra da spec 0009 (ganho ≥ +0,2 onde há espaço, sem perda nas demais). **Resultado**
+  (`reports/ganho_filtros_20261021.md`, n = 5): P09 0,6 → 1,0 com `nota >= 4`; P02 0,4 → 0,6 com
+  `situacao_entrega = 'nao_entregue'`; P01, P10 e P11 mantidas em 1,0. Filtro de nota quase não
+  perde relevante; filtro de entrega deixa de fora relatos de pedidos marcados de outro jeito.
+  Na busca do produto, P09 sem filtro é 0,6, não 0,7: o pooling vetorizou só a primeira grafia de
+  textos que diferem por maiúscula, e o MiniLM diferencia maiúsculas.
 - Latência de busca abaixo de 200 ms por pergunta.
 
 **Limitações da medição**
