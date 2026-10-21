@@ -23,9 +23,10 @@ py -3.13 -m venv .venv
 & .venv/Scripts/python.exe -m pip check
 ```
 
-Os pacotes principais têm versões fixadas. A faixa do SDK Gemini e as
-dependências transitivas ainda não formam um lock completo. O ambiente dos
-registros de geração usou google-genai 1.75.0; uma versão diferente muda seu hash.
+Os pacotes principais, inclusive google-genai 1.75.0, têm versões fixadas.
+As dependências transitivas ainda não formam um lock completo. O lote de avaliação
+e o envio de P15 em 21/10 usaram 1.75.0; os envios de E-A e E-B em 17/10 usaram
+1.73.1. A partir de agora, a demo usa 1.75.0. Outra versão muda o hash da prévia.
 Statsmodels 0.14.6 é declarado porque o script da EDA usa o intervalo de Wilson.
 
 ## Pesos do modelo

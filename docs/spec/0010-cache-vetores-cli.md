@@ -87,19 +87,27 @@ mudança, quatro prévias pelo CLI (`--acao responder`, sem `--executar`):
 
 **Critério 2 mal formulado.** O hash da prévia inclui o digest de `src/demo.py`
 (`liberacao.ARQUIVOS_CODIGO`, spec 0007): qualquer mudança nesse arquivo muda o
-hash de propósito, para exigir nova liberação. A prévia de E-A agora imprime
-`338d0b32…`. Recalculado com o digest do código anterior (o gravado no envio de
-P15 em 21/10), o payload novo reproduz `4357b6f9…` em E-A e `ba7b7fb4…` em E-B:
-fora o campo `codigo`, nada mudou. A spec deveria ter pedido isso. Luiz aceitou
+hash de propósito, para exigir nova liberação. A prévia de E-A na medição da
+spec 0010, com `google-genai` 1.73.1 no Python global, imprimiu `338d0b32…`.
+Com `google-genai` 1.75.0 em `.venv/sdk175`, imprime `6af0221c…`.
+Recalculado com o código gravado em cada envio de 17/10, o payload reproduz
+`4357b6f9…` em E-A e `ba7b7fb4…` em E-B somente no `google-genai` 1.73.1.
+Com a mesma versão do SDK, fora o campo `codigo`, nada mudou. A spec deveria ter
+pedido isso. Luiz aceitou
 no chat em 2026-10-21, depois de ver o resultado, com esse critério reformulado.
 Consequência: os hashes de E-A, E-B e P15 mudaram e precisam de nova liberação
 antes da gravação.
 
 **Achados laterais.**
-- A linha de base de P15, com código e contexto iguais aos de 21/10, dá
-  `50e01e7a…`, não o `5d874a74…` liberado naquele dia. Mesmos 10 IDs e mesmos
-  textos. Suspeita não verificada: a versão do `google-genai` entra no hash e o
-  `requirements.txt` não a trava (`>=1.73,<2`).
+- Causa confirmada por recálculo sem API em 2026-10-21: a medição da spec 0010 rodou no Python
+  global com `google-genai` 1.73.1, enquanto o envio de P15 em 21/10 usou
+  `.venv/sdk175` com 1.75.0. E-A com o código atual dá `338d0b32…` no 1.73.1
+  e `6af0221c…` no 1.75.0. Com o código gravado nos envios de 17/10, E-A e E-B
+  reproduzem `4357b6f9…` e `ba7b7fb4…` no 1.73.1; no 1.75.0 dariam
+  `26135262…` e `db895395…`. P15 com o código de 21/10 dá `50e01e7a…` no 1.73.1
+  e `5d874a74…` no 1.75.0, hash liberado e enviado naquele dia. Os 10 IDs e
+  textos são iguais; a versão do SDK entra no hash. `requirements.txt` agora
+  fixa `google-genai==1.75.0`.
 - O digest do código depende do fim de linha do arquivo em disco (CRLF aqui, LF
   no Git). Um clone com outra configuração imprime outro hash para o mesmo código.
   Não afeta a segurança do envio; afeta a comparação de hashes entre máquinas.

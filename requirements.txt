@@ -12,4 +12,4 @@ pytest==9.0.3
 # EDA usa proportion_confint(method="wilson").
 statsmodels==0.14.6
 # API de geração atrás do adaptador; comentários reais exigem revisão prévia.
-google-genai>=1.73,<2
+google-genai==1.75.0
