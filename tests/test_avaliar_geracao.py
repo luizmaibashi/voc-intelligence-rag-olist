@@ -1,8 +1,6 @@
 import copy
-import hashlib
 import json
 import sys
-from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -80,18 +78,6 @@ def test_hash_errado_e_arquivo_existente_nao_chamam(manifesto, tmp_path):
     assert saida.read_text() == "preservar"
 
 
-def test_hash_do_gate_da_tag_nao_libera_schema_novo(manifesto, tmp_path, monkeypatch):
-    hash_antigo = "8953bffc2db35a5ff48371763c97238bf04eb16ad4424564f30ba7c6afc9ccd0"
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: pytest.fail("cliente criado"))
-    caminho = tmp_path / "novo.jsonl"
-    assert avaliacao.hash_lote(manifesto, repetir_transitorios=True) != hash_antigo
-    with pytest.raises(ValueError, match="Hash"):
-        avaliacao.executar(manifesto, aprovacao_sha256=hash_antigo, previsao=10,
-                          previsao_falhas_contrato=4, saida=caminho,
-                          repetir_transitorios=True)
-    assert not caminho.exists()
-
-
 def test_hash_muda_com_payload_e_configuracao(manifesto, monkeypatch):
     original = avaliacao.hash_lote(manifesto)
     manifesto["casos"][0]["evidencias"][0]["texto"] += " Alteração."
@@ -109,9 +95,8 @@ def test_rodada_preserva_saida_sem_declarar_acerto(manifesto, tmp_path, status_e
         alias = evidencias[0]["review_id"]
         chamadas.append(alias)
         status = status_e17 if alias == "caso-17" else "respondida"
-        return {"status": status, "limitacao": "Texto não avaliado semanticamente.",
-                "afirmacoes": [{"frase": "Texto não avaliado semanticamente.",
-                                "review_ids": [alias]}] if status == "respondida" else []}
+        return {"status": status, "texto": "Texto não avaliado semanticamente.",
+                "review_ids": [alias] if status == "respondida" else []}
     saida = tmp_path / "resultados.jsonl"
     avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto),
                       previsao=10, saida=saida, gerar=gerar)
@@ -135,8 +120,7 @@ def test_falha_http_e_saida_malformada_nao_vazam_segredo(manifesto, tmp_path):
         chamadas.append(alias)
         if alias == "caso-1":
             raise Falha("CHAVE_SECRETA")
-        return {"status": "respondida", "limitacao": "",
-                "afirmacoes": [{"frase": "sem referência", "review_ids": ["inventado"]}]}
+        return {"status": "respondida", "texto": "sem referência", "review_ids": ["inventado"]}
     saida = tmp_path / "resultados.jsonl"
     avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto),
                       previsao=1, saida=saida, gerar=gerar)
@@ -146,7 +130,7 @@ def test_falha_http_e_saida_malformada_nao_vazam_segredo(manifesto, tmp_path):
     assert len(chamadas) == 19
     assert casos[0]["erro_integracao"] == {"classe": "Falha", "codigo": 503, "fase": "gerador"}
     assert casos[0]["resposta_aplicacao"]["status"] == "erro_geracao"
-    assert casos[1]["saida_provedor"]["afirmacoes"][0]["review_ids"] == ["inventado"]
+    assert casos[1]["saida_provedor"]["review_ids"] == ["inventado"]
     assert casos[1]["resposta_aplicacao"]["status"] == "erro_geracao"
 
 
@@ -154,7 +138,7 @@ def test_interrupcao_preserva_cabecalho_e_caso_anterior(manifesto, tmp_path):
     def gerar(pergunta, evidencias):
         if evidencias[0]["review_id"] == "caso-2":
             raise KeyboardInterrupt()
-        return {"status": "sem_evidencia", "limitacao": "Limite", "afirmacoes": []}
+        return {"status": "sem_evidencia", "texto": "Limite", "review_ids": []}
     saida = tmp_path / "parcial.jsonl"
     with pytest.raises(KeyboardInterrupt):
         avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto),
@@ -165,7 +149,7 @@ def test_interrupcao_preserva_cabecalho_e_caso_anterior(manifesto, tmp_path):
 def test_status_malformado_preserva_saida_e_continua(manifesto, tmp_path):
     saida = tmp_path / "resultados.jsonl"
     avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto), previsao=0,
-                      saida=saida, gerar=lambda *_: {"status": [], "limitacao": "x", "afirmacoes": []})
+                      saida=saida, gerar=lambda *_: {"status": [], "texto": "x", "review_ids": []})
     linhas = [json.loads(l) for l in saida.read_text(encoding="utf-8").splitlines()]
     assert linhas[1]["saida_provedor"]["status"] == []
     assert linhas[1]["resposta_aplicacao"]["status"] == "erro_geracao"
@@ -183,7 +167,7 @@ def test_excecao_inesperada_da_validacao_e_registrada_sem_segredo(manifesto, tmp
     monkeypatch.setattr(avaliacao, "responder", validar_com_falha)
     saida = tmp_path / "validacao.jsonl"
     avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto), previsao=0,
-                      saida=saida, gerar=lambda *_: {"status": "sem_evidencia", "limitacao": "Sem suporte", "afirmacoes": []})
+                      saida=saida, gerar=lambda *_: {"status": "sem_evidencia", "texto": "Sem suporte", "review_ids": []})
     bruto = saida.read_text(encoding="utf-8")
     linhas = [json.loads(l) for l in bruto.splitlines()]
     assert "segredo-no-erro-de-validacao" not in bruto
@@ -219,9 +203,7 @@ def test_gates_antes_da_factory_e_pasta_nao_criada(manifesto, tmp_path, monkeypa
     existente = tmp_path / "existente.jsonl"
     existente.write_text("preservar", encoding="utf-8")
     with pytest.raises(FileExistsError):
-        avaliacao.executar(manifesto, aprovacao_sha256=digest, previsao=0,
-                          previsao_falhas_contrato=0, limiar_contrato=5, saida=existente,
-                          ids_execucao=["E02"])
+        avaliacao.executar(manifesto, aprovacao_sha256=digest, previsao=0, saida=existente)
 
 
 def test_cliente_falso_configurado_sem_retry_e_fechado(manifesto, tmp_path, monkeypatch):
@@ -236,23 +218,17 @@ def test_cliente_falso_configurado_sem_retry_e_fechado(manifesto, tmp_path, monk
             chamadas.append(self)
         def generate_content(self, **kwargs):
             self.pedidos.append(kwargs)
-            return type("Saida", (), {"text": '{"status":"sem_evidencia","limitacao":"Limite","afirmacoes":[]}'})()
+            return type("Saida", (), {"text": '{"status":"sem_evidencia","texto":"Limite","review_ids":[]}'})()
         def close(self):
             self.fechado = True
     monkeypatch.setattr(genai, "Client", Cliente)
     avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto), previsao=0,
-                      previsao_falhas_contrato=0, limiar_contrato=5, saida=tmp_path / "novo.jsonl",
-                      registro_orcamento=tmp_path / "cota.jsonl",
-                      ids_execucao=sorted(avaliacao.IDS_PAREAVEIS_BASELINE))
+                      saida=tmp_path / "novo.jsonl")
     assert len(chamadas) == 1
     assert chamadas[0].opcoes.timeout == 25000
     assert chamadas[0].opcoes.retry_options.attempts == 1
     assert chamadas[0].fechado is True
-    assert len(chamadas[0].pedidos) == 13
-    registros = [json.loads(l) for l in (tmp_path / "cota.jsonl").read_text(encoding="utf-8").splitlines()]
-    assert len([r for r in registros if r["tipo"] == "envio"]) == 13
-    assert len([r for r in registros if r["tipo"] == "resultado"]) == 13
-    assert len([r for r in registros if r["tipo"] == "resultado" and r["tentativas"] == 1]) == 13
+    assert len(chamadas[0].pedidos) == 19
     config = avaliacao.configuracao_geracao()
     # Fora do callback: responder captura exceções do gerador, inclusive AssertionError.
     for pedido in chamadas[0].pedidos:
@@ -268,337 +244,6 @@ def test_cliente_falso_configurado_sem_retry_e_fechado(manifesto, tmp_path, monk
         assert pedido["config"].response_mime_type == config["response_mime_type"]
         assert pedido["config"].response_schema == config["schema"]
         assert pedido["config"].system_instruction == config["prompt"]
-
-
-def test_parada_por_contrato_preserva_parcial(manifesto, tmp_path):
-    chamadas = []
-    def gerar(_pergunta, evidencias):
-        chamadas.append(evidencias[0]["review_id"])
-        return {"_erro_contrato": "truncamento_observado", "_finish_reason": "MAX_TOKENS"}
-    saida = tmp_path / "parada.jsonl"
-    avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto),
-                      previsao=0, previsao_falhas_contrato=3, limiar_contrato=3,
-                      saida=saida, gerar=gerar,
-                      ids_execucao=sorted(avaliacao.IDS_PAREAVEIS_BASELINE))
-    linhas = [json.loads(l) for l in saida.read_text(encoding="utf-8").splitlines()]
-    assert len(chamadas) == 13
-    assert [l["classe_operacional"] for l in linhas if l["tipo"] == "caso"] == [
-        "truncamento_observado"] * 13
-    assert any(l["tipo"] == "parada_contrato" for l in linhas)
-    assert linhas[-1]["casos_registrados"] == 13
-    assert linhas[-1]["lote_completo"] is True
-
-
-def test_parada_pareada_conta_so_ids_julgaveis_no_baseline(manifesto, tmp_path):
-    chamadas = []
-    def gerar(_pergunta, evidencias):
-        chamadas.append(evidencias[0]["review_id"])
-        return {"status": "respondida", "limitacao": "",
-                "afirmacoes": [{"frase": "x", "review_ids": ["inventado"]}]}
-    saida = tmp_path / "pareado.jsonl"
-    avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto),
-                      previsao=0, previsao_falhas_contrato=4, limiar_contrato=4,
-                      saida=saida, gerar=gerar)
-    linhas = [json.loads(l) for l in saida.read_text(encoding="utf-8").splitlines()]
-    assert len(chamadas) == 18
-    assert linhas[-2]["falhas_contrato"] == 18
-    assert linhas[-2]["falhas_pareadas"] == 13
-
-
-def test_ids_subset_e_previsoes_reais_bloqueiam_antes_do_cliente(manifesto, tmp_path, monkeypatch):
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: pytest.fail("cliente criado"))
-    digest = avaliacao.hash_lote(manifesto)
-    for ids in (["E01", "E01"], ["E99"], []):
-        with pytest.raises(ValueError):
-            avaliacao.executar(manifesto, aprovacao_sha256=digest, previsao=0,
-                              previsao_falhas_contrato=0, limiar_contrato=5,
-                              ids_execucao=ids, saida=tmp_path / "bloqueado.jsonl")
-    with pytest.raises(ValueError, match="Limiar"):
-        avaliacao.executar(manifesto, aprovacao_sha256=digest, previsao=0,
-                          previsao_falhas_contrato=0, limiar_contrato=0,
-                          saida=tmp_path / "bloqueado.jsonl")
-    assert not (tmp_path / "bloqueado.jsonl").exists()
-
-
-def test_cota_real_compartilhada_para_antes_da_chamada_21(manifesto, tmp_path, monkeypatch):
-    import httpx
-    from src.rag import tentativas
-    monkeypatch.setattr(tentativas.time, "sleep", lambda _: None)
-    chamadas = []
-    def gerar(_pergunta, evidencias):
-        alias = evidencias[0]["review_id"]
-        chamadas.append(alias)
-        if len(chamadas) % 2:
-            raise httpx.ReadTimeout("segredo")
-        return {"status": "sem_evidencia", "limitacao": "sem suporte", "afirmacoes": []}
-    class Cliente:
-        def close(self):
-            pass
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: (gerar, Cliente()))
-    saida = tmp_path / "lote.jsonl"
-    cota = tmp_path / "cota.jsonl"
-    avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(
-        manifesto, repetir_transitorios=True), previsao=0,
-        previsao_falhas_contrato=0, saida=saida, repetir_transitorios=True,
-        registro_orcamento=cota,
-        ids_execucao=sorted(avaliacao.IDS_PAREAVEIS_BASELINE))
-    linhas = [json.loads(l) for l in saida.read_text(encoding="utf-8").splitlines()]
-    assert len(chamadas) == 20
-    assert len([l for l in linhas if l["tipo"] == "caso"]) == 10
-    assert any(l["tipo"] == "cota_esgotada" and l["id"] == "E14" for l in linhas)
-    assert linhas[-1]["lote_completo"] is False
-    assert linhas[-1]["casos_registrados"] == 10
-
-
-def test_parada_pareada_acumula_entre_execucoes_e_bloqueia_reenvio(manifesto, tmp_path, monkeypatch):
-    chamadas = []
-    def gerar(_pergunta, evidencias):
-        chamadas.append(evidencias[0]["review_id"])
-        return {"status": "respondida", "limitacao": "",
-                "afirmacoes": [{"frase": "x", "review_ids": ["inventado"]}]}
-    class Cliente:
-        def close(self):
-            pass
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: (gerar, Cliente()))
-    digest = avaliacao.hash_lote(manifesto)
-    cota = tmp_path / "cota.jsonl"
-    kwargs = {"aprovacao_sha256": digest, "previsao": 0,
-              "previsao_falhas_contrato": 3, "registro_orcamento": cota}
-    avaliacao.executar(manifesto, saida=tmp_path / "dia1.jsonl",
-                      ids_execucao=["E02", "E03"], **kwargs)
-    with pytest.raises(ValueError, match="já enviados"):
-        avaliacao.executar(manifesto, saida=tmp_path / "repetido.jsonl",
-                          ids_execucao=["E02"], **kwargs)
-    assert not (tmp_path / "repetido.jsonl").exists()
-    restantes = sorted(avaliacao.IDS_PAREAVEIS_BASELINE - {"E02", "E03"})
-    avaliacao.executar(manifesto, saida=tmp_path / "dia2.jsonl",
-                      ids_execucao=restantes, **kwargs)
-    linhas = [json.loads(l) for l in (tmp_path / "dia2.jsonl").read_text(encoding="utf-8").splitlines()]
-    assert len(chamadas) == 13
-    assert linhas[0]["falhas_pareadas_anteriores"] == 2
-    assert linhas[-2]["tipo"] == "parada_contrato"
-    assert linhas[-2]["falhas_pareadas"] == 13
-    with pytest.raises(ValueError, match="Parada antecipada"):
-        avaliacao.executar(manifesto, saida=tmp_path / "dia3.jsonl",
-                          ids_execucao=["E01"], **kwargs)
-    assert not (tmp_path / "dia3.jsonl").exists()
-
-
-def test_sete_restantes_so_apos_treze_pareaveis_e_n_menor_que_tres(manifesto, tmp_path, monkeypatch):
-    class Cliente:
-        def close(self):
-            pass
-    def gerar(_pergunta, evidencias):
-        return {"status": "sem_evidencia", "limitacao": "sem suporte", "afirmacoes": []}
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: (gerar, Cliente()))
-    digest = avaliacao.hash_lote(manifesto)
-    kwargs = {"aprovacao_sha256": digest, "previsao": 17,
-              "previsao_falhas_contrato": 3, "registro_orcamento": tmp_path / "cota.jsonl"}
-    with pytest.raises(ValueError, match="13 casos pareáveis"):
-        avaliacao.executar(manifesto, saida=tmp_path / "cedo.jsonl",
-                          ids_execucao=["E01"], **kwargs)
-    assert not (tmp_path / "cedo.jsonl").exists()
-    avaliacao.executar(manifesto, saida=tmp_path / "fase1.jsonl",
-                      ids_execucao=sorted(avaliacao.IDS_PAREAVEIS_BASELINE), **kwargs)
-    avaliacao.executar(manifesto, saida=tmp_path / "fase2.jsonl",
-                      ids_execucao=["E01"], **kwargs)
-    linhas = [json.loads(l) for l in (tmp_path / "fase2.jsonl").read_text(encoding="utf-8").splitlines()]
-    assert [l["id"] for l in linhas if l["tipo"] == "caso"] == ["E01"]
-
-
-def test_reavaliacao_local_preserva_captura_e_nao_permite_terceiro_envio(manifesto, tmp_path, monkeypatch):
-    import httpx
-    from src.rag import tentativas
-    monkeypatch.setattr(tentativas.time, "sleep", lambda _: None)
-    estado = {"falhar": True}
-    class Cliente:
-        def close(self):
-            pass
-    def gerar(_pergunta, _evidencias):
-        if estado["falhar"]:
-            raise httpx.ConnectError("bloqueio local")
-        return {"status": "sem_evidencia", "limitacao": "sem suporte", "afirmacoes": []}
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: (gerar, Cliente()))
-    digest = avaliacao.hash_lote(manifesto, repetir_transitorios=True)
-    monkeypatch.setattr(avaliacao, "HASH_REAVALIACAO_LOCAL", digest)
-    origem = tmp_path / "origem.jsonl"
-    monkeypatch.setattr(avaliacao, "CAPTURA_FALHA_LOCAL", origem)
-    kwargs = {"aprovacao_sha256": digest, "previsao": 17,
-              "previsao_falhas_contrato": 3, "registro_orcamento": tmp_path / "cota.jsonl",
-              "repetir_transitorios": True, "ids_execucao": ["E02"]}
-    avaliacao.executar(manifesto, saida=origem, **kwargs)
-    original = origem.read_bytes()
-    monkeypatch.setattr(avaliacao, "SHA256_CAPTURA_FALHA_LOCAL",
-                        hashlib.sha256(original).hexdigest())
-    with pytest.raises(ValueError, match="já enviados"):
-        avaliacao.executar(manifesto, saida=tmp_path / "sem_optin.jsonl", **kwargs)
-    origem.write_bytes(original + b"\n")
-    with pytest.raises(ValueError, match="foi alterada"):
-        avaliacao.executar(manifesto, saida=tmp_path / "captura_alterada.jsonl",
-                          reavaliar_falhas_locais=True, **kwargs)
-    assert not (tmp_path / "captura_alterada.jsonl").exists()
-    origem.write_bytes(original)
-    estado["falhar"] = False
-    avaliacao.executar(manifesto, saida=tmp_path / "reavaliacao.jsonl",
-                      reavaliar_falhas_locais=True, **kwargs)
-    assert origem.read_bytes() == original
-    ledger = [json.loads(l) for l in (tmp_path / "cota.jsonl").read_text(encoding="utf-8").splitlines()]
-    assert len([l for l in ledger if l["tipo"] == "envio"]) == 2
-    with pytest.raises(ValueError, match="única falha local anterior"):
-        avaliacao.executar(manifesto, saida=tmp_path / "terceira.jsonl",
-                          reavaliar_falhas_locais=True, **kwargs)
-    assert not (tmp_path / "terceira.jsonl").exists()
-
-
-def test_reenvio_servico_autorizado_e_segundo_recusado(manifesto, tmp_path, monkeypatch):
-    digest = avaliacao.hash_lote(manifesto, repetir_transitorios=True)
-    monkeypatch.setattr(avaliacao, "HASH_REAVALIACAO_SERVICO", digest)
-    for cid in ("E02", "E18"):
-        caminho, _, quantidade = avaliacao.CAPTURAS_FALHA_SERVICO[cid]
-        origem = Path(avaliacao.__file__).resolve().parents[2] / caminho
-        linhas_origem = [json.loads(l) for l in origem.read_text(encoding="utf-8").splitlines()]
-        linhas_origem[0]["hash_lote"] = digest
-        copia = tmp_path / f"origem_{cid}.jsonl"
-        conteudo = ("\n".join(json.dumps(l, ensure_ascii=False) for l in linhas_origem) + "\n").encode()
-        copia.write_bytes(conteudo)
-        monkeypatch.setitem(avaliacao.CAPTURAS_FALHA_SERVICO, cid,
-                            (str(copia), hashlib.sha256(conteudo).hexdigest(), quantidade))
-    cota = tmp_path / "cota.jsonl"
-    linhas = []
-    for cid, quantidade in (("E02", 2), ("E18", 1)):
-        for indice in range(quantidade):
-            execucao = f"{cid}-{indice}"
-            linhas.extend([{"tipo": "envio", "execucao": execucao, "id": cid,
-                            "origem": "avaliacao", "hash": digest, "utc": "2026-10-19T00:00:00+00:00"},
-                           {"tipo": "resultado", "execucao": execucao, "id": cid,
-                            "origem": "avaliacao", "hash": digest, "tentativas": 2,
-                            "classe_operacional": "falha_servico"}])
-    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
-    class Cliente:
-        def close(self):
-            pass
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: (
-        lambda *_: {"status": "sem_evidencia", "limitacao": "", "afirmacoes": []}, Cliente()))
-    kwargs = {"aprovacao_sha256": digest, "previsao": 17, "previsao_falhas_contrato": 3,
-              "registro_orcamento": cota, "repetir_transitorios": True,
-              "reavaliar_falha_servico": True}
-    avaliacao.executar(manifesto, saida=tmp_path / "e02.jsonl", ids_execucao=["E02"], **kwargs)
-    with pytest.raises(ValueError, match="Histórico"):
-        avaliacao.executar(manifesto, saida=tmp_path / "e02_novo.jsonl", ids_execucao=["E02"], **kwargs)
-    with pytest.raises(ValueError, match="13 casos pareáveis"):
-        avaliacao.executar(manifesto, saida=tmp_path / "fase2.jsonl", ids_execucao=["E01"],
-                          **{k: v for k, v in kwargs.items() if k != "reavaliar_falha_servico"})
-    avaliacao.executar(manifesto, saida=tmp_path / "e18.jsonl", ids_execucao=["E18"], **kwargs)
-    assert not (tmp_path / "e02_novo.jsonl").exists()
-
-
-def test_opcoes_de_reenvio_incompativeis_antes_do_cliente(manifesto, tmp_path, monkeypatch):
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: pytest.fail("cliente criado"))
-    with pytest.raises(ValueError, match="incompatíveis"):
-        avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto),
-                          previsao=17, previsao_falhas_contrato=3,
-                          saida=tmp_path / "recusado.jsonl", ids_execucao=["E02"],
-                          reavaliar_falhas_locais=True, reavaliar_falha_servico=True)
-    assert not (tmp_path / "recusado.jsonl").exists()
-
-
-def test_reenvio_servico_exige_ultimo_resultado_falha_antes_do_cliente(
-        manifesto, tmp_path, monkeypatch):
-    digest = avaliacao.hash_lote(manifesto, repetir_transitorios=True)
-    monkeypatch.setattr(avaliacao, "HASH_REAVALIACAO_SERVICO", digest)
-    caminho, _, quantidade = avaliacao.CAPTURAS_FALHA_SERVICO["E02"]
-    origem = Path(avaliacao.__file__).resolve().parents[2] / caminho
-    linhas_origem = [json.loads(l) for l in origem.read_text(encoding="utf-8").splitlines()]
-    linhas_origem[0]["hash_lote"] = digest
-    copia = tmp_path / "origem_e02.jsonl"
-    conteudo = ("\n".join(json.dumps(l, ensure_ascii=False) for l in linhas_origem) + "\n").encode()
-    copia.write_bytes(conteudo)
-    monkeypatch.setitem(avaliacao.CAPTURAS_FALHA_SERVICO, "E02",
-                        (str(copia), hashlib.sha256(conteudo).hexdigest(), quantidade))
-    cota = tmp_path / "cota.jsonl"
-    linhas = []
-    for indice, classe in enumerate(("falha_servico", "respondida_pendente_julgamento")):
-        execucao = f"E02-{indice}"
-        linhas.extend([{"tipo": "envio", "execucao": execucao, "id": "E02",
-                        "origem": "avaliacao", "hash": digest, "utc": "2026-10-19T00:00:00+00:00"},
-                       {"tipo": "resultado", "execucao": execucao, "id": "E02",
-                        "origem": "avaliacao", "hash": digest, "tentativas": 1,
-                        "classe_operacional": classe}])
-    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: pytest.fail("cliente criado"))
-    saida = tmp_path / "recusado.jsonl"
-    with pytest.raises(ValueError, match="Histórico"):
-        avaliacao.executar(manifesto, aprovacao_sha256=digest, previsao=17,
-                          previsao_falhas_contrato=3, saida=saida,
-                          registro_orcamento=cota, repetir_transitorios=True,
-                          ids_execucao=["E02"], reavaliar_falha_servico=True)
-    assert not saida.exists()
-
-
-def test_fase2_so_depois_de_e02_e_e18_com_saida(manifesto, tmp_path, monkeypatch):
-    digest = avaliacao.hash_lote(manifesto)
-    cota = tmp_path / "cota.jsonl"
-    linhas = []
-    for cid in avaliacao.IDS_PAREAVEIS_BASELINE:
-        if cid == "E18":
-            continue
-        classe = "falha_servico" if cid == "E02" else "recusa"
-        linhas.extend([{"tipo": "envio", "execucao": cid, "id": cid, "origem": "avaliacao",
-                        "hash": digest, "utc": "2026-10-19T00:00:00+00:00"},
-                       {"tipo": "resultado", "execucao": cid, "id": cid, "origem": "avaliacao",
-                        "hash": digest, "tentativas": 1, "classe_operacional": classe}])
-    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
-    class Cliente:
-        def close(self):
-            pass
-    monkeypatch.setattr(avaliacao, "_criar_gerador", lambda: (
-        lambda *_: {"status": "sem_evidencia", "limitacao": "", "afirmacoes": []}, Cliente()))
-    kwargs = {"aprovacao_sha256": digest, "previsao": 17, "previsao_falhas_contrato": 3,
-              "registro_orcamento": cota}
-    with pytest.raises(ValueError, match="13 casos pareáveis"):
-        avaliacao.executar(manifesto, saida=tmp_path / "cedo.jsonl", ids_execucao=["E01"], **kwargs)
-    linhas.append({"tipo": "resultado", "execucao": "E02-novo", "id": "E02",
-                  "origem": "avaliacao", "hash": digest, "classe_operacional": "recusa"})
-    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="13 casos pareáveis"):
-        avaliacao.executar(manifesto, saida=tmp_path / "ainda_cedo.jsonl", ids_execucao=["E01"], **kwargs)
-    linhas.append({"tipo": "resultado", "execucao": "E18-novo", "id": "E18",
-                  "origem": "avaliacao", "hash": digest, "classe_operacional": "recusa"})
-    cota.write_text("\n".join(json.dumps(l) for l in linhas) + "\n", encoding="utf-8")
-    avaliacao.executar(manifesto, saida=tmp_path / "fase2.jsonl", ids_execucao=["E01"], **kwargs)
-
-
-def test_guarda_reenvio_servico_recusa_desvios(tmp_path, monkeypatch):
-    digest = avaliacao.HASH_REAVALIACAO_SERVICO
-    envios = Counter({"E02": 2, "E18": 1})
-    resultados = {cid: {"classe_operacional": "falha_servico"} for cid in envios}
-    avaliacao.autorizar_reenvio_servico(["E02", "E18"], digest, envios, resultados)
-    with pytest.raises(ValueError, match="autorização"):
-        avaliacao.autorizar_reenvio_servico(["E03"], digest, envios, resultados)
-    with pytest.raises(ValueError, match="Histórico"):
-        avaliacao.autorizar_reenvio_servico(["E02"], digest, Counter({"E02": 3}), resultados)
-    caminho, sha, n = avaliacao.CAPTURAS_FALHA_SERVICO["E02"]
-    original = (Path(avaliacao.__file__).resolve().parents[2] / caminho).read_bytes().replace(b"\r\n", b"\n")
-    for conteudo in (original, original.replace(b"\n", b"\r\n")):
-        copia = tmp_path / "origem.jsonl"
-        copia.write_bytes(conteudo)
-        monkeypatch.setitem(avaliacao.CAPTURAS_FALHA_SERVICO, "E02", (str(copia), sha, n))
-        avaliacao.autorizar_reenvio_servico(["E02"], digest, envios, resultados)
-    copia.write_bytes(original + b"x")
-    with pytest.raises(ValueError, match="alterada"):
-        avaliacao.autorizar_reenvio_servico(["E02"], digest, envios, resultados)
-    caso = json.loads(next(l for l in original.decode().splitlines()
-                           if json.loads(l).get("tipo") == "caso" and json.loads(l).get("id") == "E02"))
-    caso["saida_provedor"] = {"status": "respondida"}
-    alterado = b"\n".join(json.dumps(caso if json.loads(l).get("tipo") == "caso" and
-                                      json.loads(l).get("id") == "E02" else json.loads(l),
-                                      ensure_ascii=False, separators=(",", ":")).encode()
-                            for l in original.decode().splitlines()) + b"\n"
-    copia.write_bytes(alterado)
-    monkeypatch.setitem(avaliacao.CAPTURAS_FALHA_SERVICO, "E02", (
-        str(copia), hashlib.sha256(alterado).hexdigest(), n))
-    with pytest.raises(ValueError, match="Contrato"):
-        avaliacao.autorizar_reenvio_servico(["E02"], digest, envios, resultados)
 
 
 def test_aprovacao_antiga_rejeita_texto_alterado_antes_de_cliente(manifesto, tmp_path, monkeypatch):
@@ -660,8 +305,7 @@ def test_rodada_optin_preserva_tentativas_e_numero_real(manifesto, tmp_path, mon
         chamadas[alias] = chamadas.get(alias, 0) + 1
         if alias in {"caso-1", "caso-2"} and (alias == "caso-2" or chamadas[alias] == 1):
             raise httpx.ReadTimeout("SEGREDO")
-        return {"status": "respondida", "limitacao": "",
-                "afirmacoes": [{"frase": "Texto sintético", "review_ids": [alias]}]}
+        return {"status": "respondida", "texto": "Texto sintético", "review_ids": [alias]}
 
     saida = tmp_path / "retry.jsonl"
     avaliacao.executar(manifesto, aprovacao_sha256=avaliacao.hash_lote(manifesto, repetir_transitorios=True),

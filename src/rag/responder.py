@@ -11,12 +11,7 @@ from src.retrieval.indice import buscar, codificar_pergunta
 class Resposta:
     status: str
     texto: str
-    afirmacoes: list[dict] = field(default_factory=list)
-
-    @property
-    def review_ids(self) -> list[str]:
-        """Lista derivada para localizar fontes; não constitui citação global do contrato."""
-        return list(dict.fromkeys(i for a in self.afirmacoes for i in a["review_ids"]))
+    review_ids: list[str] = field(default_factory=list)
 
 
 def _recusar(motivo: str) -> Resposta:
@@ -48,28 +43,17 @@ def responder(pergunta: str, evidencias: list[dict],
     if (not isinstance(saida, dict) or not isinstance(saida.get("status"), str)
             or saida["status"] not in {"respondida", "sem_evidencia"}):
         return _erro("Saída inválida do modelo.")
-    if not isinstance(saida.get("limitacao"), str):
-        return _erro("Saída inválida do modelo.")
-    afirmacoes = saida.get("afirmacoes")
-    if not isinstance(afirmacoes, list):
-        return _erro("Saída inválida do modelo.")
+    texto = saida.get("texto")
+    citacoes = saida.get("review_ids")
+    if not isinstance(texto, str) or not texto.strip() or not isinstance(citacoes, list):
+        return _erro("Resposta sem texto ou citações válidas.")
+    if any(not isinstance(i, str) or i not in ids for i in citacoes):
+        return _erro("Resposta citou avaliações ausentes do contexto.")
     if saida["status"] == "sem_evidencia":
-        if afirmacoes:
-            return _erro("Recusa contém afirmações.")
         return _recusar("As avaliações recuperadas não sustentam a resposta solicitada.")
-    if not afirmacoes:
-        return _erro("Resposta sem afirmações.")
-    validadas = []
-    for item in afirmacoes:
-        if not isinstance(item, dict) or not isinstance(item.get("frase"), str) or not item["frase"].strip():
-            return _erro("Afirmação inválida.")
-        citacoes = item.get("review_ids")
-        if not isinstance(citacoes, list) or not citacoes or any(
-                not isinstance(i, str) or not i.strip() or i not in ids for i in citacoes):
-            return _erro("Afirmação citou avaliações ausentes do contexto.")
-        validadas.append({"frase": item["frase"].strip(),
-                          "review_ids": list(dict.fromkeys(citacoes))})
-    return Resposta("respondida", " ".join(a["frase"] for a in validadas), validadas)
+    if not citacoes:
+        return _erro("Resposta citou avaliações ausentes do contexto.")
+    return Resposta("respondida", texto.strip(), list(dict.fromkeys(citacoes)))
 
 
 def executar_rag(pergunta: str, con: duckdb.DuckDBPyConnection, modelo_embedding,

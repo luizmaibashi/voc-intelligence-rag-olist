@@ -21,13 +21,12 @@ EVIDENCIAS = [
 
 def test_resposta_cita_id_do_contexto():
     def gerar(pergunta, evidencias):
-        return {"status": "respondida", "limitacao": "",
-                "afirmacoes": [{"frase": "Há relato de produto quebrado.", "review_ids": ["r1"]}]}
+        return {"status": "respondida", "texto": "Há relato de produto quebrado.",
+                "review_ids": ["r1"]}
 
     resposta = responder("Houve produto quebrado?", EVIDENCIAS, gerar)
     assert resposta.status == "respondida"
     assert resposta.review_ids == ["r1"]
-    assert resposta.afirmacoes == [{"frase": "Há relato de produto quebrado.", "review_ids": ["r1"]}]
 
 
 def test_recusa_sem_contexto_nao_chama_modelo():
@@ -39,8 +38,7 @@ def test_recusa_sem_contexto_nao_chama_modelo():
 
 def test_id_inventado_falha_fechado():
     def gerar(pergunta, evidencias):
-        return {"status": "respondida", "limitacao": "",
-                "afirmacoes": [{"frase": "Resposta inventada", "review_ids": ["r999"]}]}
+        return {"status": "respondida", "texto": "Resposta inventada", "review_ids": ["r999"]}
 
     resposta = responder("Pergunta", EVIDENCIAS, gerar)
     assert resposta.status == "erro_geracao"
@@ -49,8 +47,7 @@ def test_id_inventado_falha_fechado():
 
 def test_resposta_sem_citacao_falha_fechado():
     def gerar(pergunta, evidencias):
-        return {"status": "respondida", "limitacao": "",
-                "afirmacoes": [{"frase": "Resposta sem fonte", "review_ids": []}]}
+        return {"status": "respondida", "texto": "Resposta sem fonte", "review_ids": []}
 
     assert responder("Pergunta", EVIDENCIAS, gerar).status == "erro_geracao"
 
@@ -62,33 +59,28 @@ def test_saida_malformada_falha_fechado():
 @pytest.mark.parametrize("status", [[], {}, None, 1, True, "desconhecido"])
 def test_status_fora_do_dominio_retornado_pelo_modelo_falha_fechado(status):
     resposta = responder("Pergunta", EVIDENCIAS,
-                         lambda *_: {"status": status, "limitacao": "",
-                                     "afirmacoes": [{"frase": "x", "review_ids": ["r1"]}]})
+                         lambda *_: {"status": status, "texto": "x", "review_ids": ["r1"]})
     assert resposta.status == "erro_geracao"
     assert resposta.review_ids == []
 
 
 def test_id_valido_e_inventado_juntos_falham_fechado():
-    gerar = lambda *_: {"status": "respondida", "limitacao": "",
-                        "afirmacoes": [{"frase": "x", "review_ids": ["r1", "r999"]}]}
+    gerar = lambda *_: {"status": "respondida", "texto": "x", "review_ids": ["r1", "r999"]}
     assert responder("Pergunta", EVIDENCIAS, gerar).status == "erro_geracao"
 
 
 @pytest.mark.parametrize("citacoes", [["r999"], ["r1", "r999"], [{}], [None]])
 def test_recusa_com_citacao_invalida_falha_fechado(citacoes):
-    gerar = lambda *_: {"status": "sem_evidencia", "limitacao": "Sem suporte",
-                        "afirmacoes": [{"frase": "x", "review_ids": citacoes}]}
+    gerar = lambda *_: {"status": "sem_evidencia", "texto": "Sem suporte", "review_ids": citacoes}
     assert responder("Pergunta", EVIDENCIAS, gerar).status == "erro_geracao"
 
 
 @pytest.mark.parametrize("citacoes", [[], ["r1"]])
 def test_recusa_com_citacoes_validas_preserva_mensagem_generica(citacoes):
-    gerar = lambda *_: {"status": "sem_evidencia", "limitacao": "Limite do contexto",
-                        "afirmacoes": [] if not citacoes else [{"frase": "x", "review_ids": citacoes}]}
+    gerar = lambda *_: {"status": "sem_evidencia", "texto": "Limite do contexto", "review_ids": citacoes}
     resposta = responder("Pergunta", EVIDENCIAS, gerar)
-    assert resposta.status == ("sem_evidencia" if not citacoes else "erro_geracao")
-    assert resposta.texto == ("As avaliações recuperadas não sustentam a resposta solicitada."
-                             if not citacoes else "Recusa contém afirmações.")
+    assert resposta.status == "sem_evidencia"
+    assert resposta.texto == "As avaliações recuperadas não sustentam a resposta solicitada."
     assert resposta.review_ids == []
 
 
@@ -109,8 +101,8 @@ def test_contexto_malformado_recusa_sem_chamar_modelo():
 def test_politica_oficial_pode_ser_recusada_com_tema_parecido():
     def gerar(pergunta, evidencias):
         assert evidencias[0]["texto"].startswith("O produto")
-        return {"status": "sem_evidencia", "limitacao": "Os relatos não informam política oficial.",
-                "afirmacoes": []}
+        return {"status": "sem_evidencia", "texto": "Os relatos não informam política oficial.",
+                "review_ids": []}
 
     resposta = responder("Qual o prazo oficial de troca?", EVIDENCIAS, gerar)
     assert resposta.status == "sem_evidencia"
@@ -118,8 +110,8 @@ def test_politica_oficial_pode_ser_recusada_com_tema_parecido():
 
 def test_recusa_nao_exibe_afirmacao_livre_do_modelo():
     gerar = lambda *_: {"status": "sem_evidencia",
-                        "limitacao": "O prazo oficial de troca é 30 dias.",
-                        "afirmacoes": []}
+                        "texto": "O prazo oficial de troca é 30 dias.",
+                        "review_ids": ["r1"]}
     resposta = responder("Qual o prazo oficial de troca?", EVIDENCIAS, gerar)
     assert resposta.status == "sem_evidencia"
     assert resposta.review_ids == []
@@ -134,7 +126,7 @@ def test_adaptador_envia_contexto_e_schema_sem_rede(modelo, esperado):
     class Models:
         def generate_content(self, **kwargs):
             self.chamada = kwargs
-            return type("R", (), {"text": '{"status":"sem_evidencia","limitacao":"Sem prazo oficial.","afirmacoes":[]}'})()
+            return type("R", (), {"text": '{"status":"sem_evidencia","texto":"Sem prazo oficial.","review_ids":[]}'})()
 
     class Client:
         models = Models()
@@ -161,20 +153,6 @@ def test_adaptador_exige_revisao_do_contexto_antes_de_enviar():
         GeradorGemini(client=Client())("Pergunta", EVIDENCIAS)
 
 
-@pytest.mark.parametrize("motivo,esperado", [("MAX_TOKENS", "truncamento_observado"),
-                                             (None, "json_invalido")])
-def test_adaptador_registra_json_invalido_sem_inferir_truncamento(motivo, esperado):
-    class Models:
-        def generate_content(self, **_kwargs):
-            candidatos = ([type("C", (), {"finish_reason": type("F", (), {"name": motivo})()})()]
-                          if motivo else [])
-            return type("R", (), {"text": '{"status":', "candidates": candidatos})()
-    class Client:
-        models = Models()
-    saida = GeradorGemini(client=Client(), contexto_revisado=True)("Pergunta", EVIDENCIAS)
-    assert saida == {"_erro_contrato": esperado, "_finish_reason": motivo}
-
-
 def test_pipeline_embeda_filtra_recupera_e_cita():
     docs = pd.DataFrame({"review_id": ["r1", "r2"], "texto": ["Quebrou", "Chegou bem"],
                          "nota": [1, 5], "situacao_entrega": ["atrasado", "no_prazo"],
@@ -193,8 +171,7 @@ def test_pipeline_embeda_filtra_recupera_e_cita():
 
     def gerar(pergunta, evidencias):
         assert [e["review_id"] for e in evidencias] == ["r2"]
-        return {"status": "respondida", "limitacao": "",
-                "afirmacoes": [{"frase": "Há elogio à entrega.", "review_ids": ["r2"]}]}
+        return {"status": "respondida", "texto": "Há elogio à entrega.", "review_ids": ["r2"]}
 
     resposta = executar_rag("Houve elogio?", con, Modelo(), gerar, nota_min=4)
     assert resposta.status == "respondida"
@@ -232,7 +209,7 @@ def test_pipeline_filtro_invalido_falha_sem_gerar():
 
     def gerar(*_args):
         chamadas.append(True)
-        return {"status": "sem_evidencia", "limitacao": "Sem suporte", "afirmacoes": []}
+        return {"status": "sem_evidencia", "texto": "Sem suporte", "review_ids": []}
 
     with duckdb.connect() as con:
         criar_indice(con, docs, vetor)

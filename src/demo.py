@@ -86,12 +86,11 @@ def ensaio_sintetico(modelo) -> dict:
     def gerar_falso(pergunta, evidencias):
         if pergunta == PERGUNTA_POLITICA:
             return {"status": "sem_evidencia",
-                    "limitacao": "Os relatos inventados não estabelecem política oficial.",
-                    "afirmacoes": []}
+                    "texto": "Os relatos inventados não estabelecem política oficial.",
+                    "review_ids": []}
         return {"status": "respondida",
-                "limitacao": "",
-                "afirmacoes": [{"frase": e["texto"], "review_ids": [e["review_id"]]}
-                                for e in evidencias]}
+                "texto": "Relatos da simulação: " + " ".join(e["texto"] for e in evidencias),
+                "review_ids": [e["review_id"] for e in evidencias]}
     for pergunta in (PERGUNTA_ATRASOS, PERGUNTA_POLITICA):
         busca = recuperar(corpus, pergunta, modelo, k=2, nota_max=2,
                           situacao_entrega="atrasado")
@@ -116,9 +115,8 @@ def _criar_gerador():
 
 def _gerar_simulado(pergunta, evidencias):
     return {"status": "respondida",
-            "limitacao": "",
-            "afirmacoes": [{"frase": e["texto"], "review_ids": [e["review_id"]]}
-                            for e in evidencias]}
+            "texto": "Resposta simulada a partir de: " + " ".join(e["texto"] for e in evidencias),
+            "review_ids": [e["review_id"] for e in evidencias]}
 
 
 def responder_cli(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
@@ -137,10 +135,7 @@ def responder_cli(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
 
     def com_resposta(modo: str, resposta) -> dict:
         citadas = [f for f in busca["fontes"] if f["review_id"] in resposta.review_ids]
-        pares = [{"frase": a["frase"], "fontes": [f for f in busca["fontes"]
-                  if f["review_id"] in a["review_ids"]]} for a in resposta.afirmacoes]
         return {**base, "modo": modo, "resposta": asdict(resposta), "fontes_citadas": citadas,
-                "afirmacoes_com_fontes": pares,
                 "aviso": "Citação válida não prova que cada frase tem suporte; confira as fontes."}
 
     if gerador == "falso":
@@ -170,8 +165,7 @@ def responder_cli(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
         if cliente is not None:
             cliente.close()
     reg.resultado({"status": resposta.status, "texto": resposta.texto,
-                   "afirmacoes": resposta.afirmacoes, "review_ids_derivados": resposta.review_ids,
-                   "tentativas": com_tentativas.tentativas})
+                   "review_ids": resposta.review_ids, "tentativas": com_tentativas.tentativas})
     return {**com_resposta("geracao_real", resposta), "hash": digest,
             "tentativas": com_tentativas.tentativas,
             "chamadas_restantes_hoje": liberacao.restantes_hoje(registro, relogio())}
