@@ -13,7 +13,7 @@ estratégia RAG [R], recuperação [Rec], demo prática [D], exemplos de pergunt
 |---|---|---|---|---|---|
 | 1 | 0:00–0:40 | Dor | Slide: 1 comentário real + nota 1 | "Um gestor de atendimento tem 40 mil comentários e uma pergunta: o que está dando errado na entrega? Ler tudo não cabe; uma IA que inventa resposta é pior que não ter." | N |
 | 2 | 0:40–1:30 | Arquitetura | Diagrama do README | Pergunta → MiniLM → DuckDB com filtros → contexto → Gemini → validação de citações. Contagem SQL corre ao lado, separada. "Cada caixa existe por um motivo que dá para medir." | A, R |
-| 3 | 1:30–2:20 | Base e busca | ADR 0001/0002 em tela | 1 avaliação = 1 documento, limpeza mínima (negação e acento importam). MiniLM × E5 × TF-IDF com gabarito humano: P@10 0,72 [0,55; 0,87], n=14; ICs sobrepostos — escolha justificada, não "vencedor". | R, Rec, Dec |
+| 3 | 1:30–2:20 | Base e busca | Slide: P@10 dos 3 modelos com IC95% | 1 avaliação = 1 documento, limpeza mínima (negação e acento importam). MiniLM × E5 × TF-IDF com gabarito humano: P@10 0,72 [0,55; 0,87], n=14; ICs sobrepostos — escolha justificada, não "vencedor". | R, Rec, Dec |
 | 4 | 2:20–3:50 | Demo: a pergunta muda o achado | Terminal: prévia → hash → resposta | Pergunta 1 ("relatam sobre atraso") → resposta óbvia, 10/10 citadas. Pergunta 2 ("o que aconteceu depois do atraso") → 5 fontes, "não receberam justificativa". Mostrar comentário citado. "A IA levantou uma pista; agora preciso medir." | D, P, E, Rec |
 | 5 | 3:50–4:30 | Contagem | `--acao contar` | 4.339 de 40.303 = 10,77%, IC95% [10,47%; 11,07%]. "Top-k mostra exemplos; frequência vem de contagem com população definida." Gancho da aula: não afirmar que atraso causou a nota. | E, Dec |
 | 6 | 4:30–5:15 | Recusa | Terminal: P15 política de reembolso | Status `sem_evidencia`: relato de cliente não estabelece política oficial. Falha do serviço aparece como `erro_geracao`, nunca como "não sei". | P, E |
@@ -34,6 +34,11 @@ estratégia RAG [R], recuperação [Rec], demo prática [D], exemplos de pergunt
   aplicação; "relato não estabelece política" é fala, não saída do CLI.
 - **Espera de ~3 min dos vetores** na demo: cortar na edição ou gravar com saída
   já pronta, sem esconder que existe a espera (dizer em uma frase).
-- Slides dos blocos 1, 2 e 8: ferramenta e visual a decidir.
+- Slides: decidido em 2026-10-21 o tema escuro de terminal (direção A), para
+  não mudar de visual entre slide e demo. Quatro slides (blocos 1, 2, 3 e 8);
+  o bloco 3 ganhou slide porque o ADR em tela fica ilegível no vídeo (P@10 dos
+  3 modelos com IC95%, números do ADR 0002). Rascunho no canvas privado
+  https://claude.ai/artifact/3ce9d9UDVqj91shkPbGQ12. Falta exportar em
+  1280×720.
 - Ensaio cronometrado: ler em voz alta e ajustar; se passar de 6:45, cortar o
   bloco 3 primeiro (detalhe fica no README). Com o 7b o total previsto é 6:35.
