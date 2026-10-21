@@ -32,8 +32,15 @@ estratégia RAG [R], recuperação [Rec], demo prática [D], exemplos de pergunt
   1 chamada liberada, `sem_evidencia` em 1 tentativa
   (`reports/demo_cli_p15_20261021.md`). Na tela aparece a mensagem genérica da
   aplicação; "relato não estabelece política" é fala, não saída do CLI.
-- **Espera de ~3 min dos vetores** na demo: cortar na edição ou gravar com saída
-  já pronta, sem esconder que existe a espera (dizer em uma frase).
+- ~~**Espera dos vetores.**~~ Decidido em 2026-10-21: cortar na edição, sem
+  mudar código. Causa: `recuperar` (`src/demo.py`) recalcula os vetores dos
+  42.174 comentários a cada comando (índice efêmero, ADR 0002), ~3:50 por
+  execução; 6 execuções nos blocos 4 e 6 (prévia + envio de E-A, E-B e P15).
+  Deixar 2–3 s da barra de progresso antes de cada corte. Fala no bloco 4:
+  "A busca é exata e refaz os vetores de 42 mil comentários a cada consulta,
+  uns 4 minutos; cortei a espera. Em produção, o cache que já uso na avaliação
+  resolve isso." Conferência ao vivo: se o corpus não mudou, a prévia de E-A
+  repete o hash aprovado em 17/10 (`4357b6f9…`).
 - Slides: decidido em 2026-10-21 o tema escuro de terminal (direção A), para
   não mudar de visual entre slide e demo. Quatro slides (blocos 1, 2, 3 e 8);
   o bloco 3 ganhou slide porque o ADR em tela fica ilegível no vídeo (P@10 dos
