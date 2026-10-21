@@ -3,7 +3,7 @@
 **Data:** 2026-10-16. **Dono da aprovação (spec, merge e cada envio):** Luiz Maibashi.
 **Status:** aprovada por Luiz em 2026-10-16; implementada com cliente falso
 (263 testes passando), aguardando revisão do diff. Nenhuma chamada real feita.
-**Origem:** item 2e da `docs/planejamento/MATRIZ_ENUNCIADO.md`.
+**Origem:** requisito 2 do enunciado (geração da resposta final), que em 16/10 ainda não tinha execução real no CLI.
 
 ## Objetivo
 

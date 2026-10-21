@@ -173,6 +173,18 @@ já passou e não tive satisfação dos responsáveis”. A mesma busca com a pe
 devolveu apenas que há atraso: a formulação muda o achado. Três relatos no top-k
 levantam uma hipótese (falta de comunicação proativa); não medem sua frequência.
 
+Exemplo real de recusa (2026-10-21; mesmos filtros):
+
+> **Pergunta:** Qual é o prazo oficial de reembolso da Olist quando uma entrega atrasa?
+>
+> **Resposta (`sem_evidencia`, nenhuma fonte citada):** “As avaliações
+> recuperadas não sustentam a resposta solicitada.”
+
+Os 10 comentários recuperados falam de atraso, mas nenhum fala de reembolso ou
+de regra da empresa. O modelo explicou isso no registro de execução; a
+aplicação mostra a mensagem padrão e não inventa prazo. Captura em
+[`reports/demo_cli_p15_20261021.md`](reports/demo_cli_p15_20261021.md).
+
 ### Contagem de atrasos
 
 ```powershell
@@ -271,7 +283,7 @@ residual de dados pessoais.
   filtros da entrada atual.
 - P09 permanece congelado: só a liderança de prazo/rapidez foi liberada;
   ranking completo não foi aprovado.
-- Exemplos reais são demonstração (n = 2 perguntas no CLI, seleção intencional),
+- Exemplos reais são demonstração (n = 3 perguntas no CLI, seleção intencional),
   não medida de confiabilidade. Roteiro da demo na
   [spec 0004](docs/spec/0004-demo-investigacao-entrega.md).
 - Orçamento de chamadas é contado por máquina; duas máquinas somam cotas.
