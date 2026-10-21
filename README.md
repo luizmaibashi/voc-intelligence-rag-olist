@@ -41,7 +41,7 @@ não estiver no cache, prepare-o com conexão antes de executar a demo:
 Esse comando baixa o modelo; não envia comentários da Olist. Nome do modelo
 não fixa uma revisão dos pesos remotos. O cache local em 20/10/2026 apontava
 para `e8f8c211226b894fcb81acc59f3b34ba3efd5f42`, também registrada em
-[um teste de cache](reports/integridade_busca_cache.md). Não há registro que
+[relatório de integridade do cache](reports/integridade_busca_cache.md). Não há registro que
 comprove essa revisão nas capturas de geração.
 
 ## Ensaio sintético local
@@ -148,12 +148,14 @@ $env:PYTHONPATH = '.venv/sdk175'
 python -m src.eval.avaliar_geracao --manifesto data/eval/geracao_casos.json --repetir-transitorios
 ```
 
-O hash autorizado desse lote é
-`203ec986dd98ec4550490df3b8418f5c42acf74187006b1767e2e52c3b76fae3`.
+O hash do lote na configuração entregue, `cfg-citacao-por-resposta`, é
+`8953bffc2db35a5ff48371763c97238bf04eb16ad4424564f30ba7c6afc9ccd0`.
 Para reproduzi-lo, são necessários o mesmo SDK, manifesto, contexto e código;
 outra versão do SDK gera outro hash. A política
 de prévia, liberação e cota está na
 [spec 0007](docs/spec/0007-cli-resposta-gerada.md).
+As capturas da configuração por afirmação só são reproduzíveis na tag
+`cfg-citacao-por-afirmacao-abandonada`.
 
 Exemplo real (2026-10-17; nota ≤ 2, entrega atrasada, k = 10):
 
@@ -217,6 +219,12 @@ Evidências: [spec 0006](docs/spec/0006-avaliacao-geracao.md),
 [revisão geral](reports/revisao_geral_20261007.md) e
 [reavaliação E05](reports/e05_reavaliacao_20261007_01.jsonl).
 
+No gate histórico da configuração entregue, Luiz aprovou 19 casos na rodada 04
+e E05 numa reavaliação isolada sob o mesmo contrato: 20/20 casos cobertos
+(IC95% de Wilson calculado: 83,9% a 100%). São 18 casos reais, um sintético
+e um controle local, escolhidos intencionalmente. O resultado libera apenas a
+demonstração curada; não estima a confiabilidade em perguntas novas.
+
 ### Decisões técnicas
 
 | Decisão | Motivo e registro |
@@ -228,7 +236,7 @@ Evidências: [spec 0006](docs/spec/0006-avaliacao-geracao.md),
 | Classificação de elogios à entrega | Critérios e limites dos rótulos estão na [ADR 0005](docs/adr/0005-classificacao-elogios.md). |
 | Protótipo com Gemini 3.1 Flash-Lite | Modelo e limites da escolha estão na [ADR 0006](docs/adr/0006-gerador-gemini-31-prototipo.md). |
 | Até duas tentativas para falha transitória | Repetição observável, sem repetir erro de contrato; [ADR 0007](docs/adr/0007-repeticao-transitoria-observavel.md). |
-| Citação por afirmação em experimento | Liga cada frase a suas fontes para auditoria, sem prometer maior correção; [ADR 0008](docs/adr/0008-citacao-por-afirmacao.md). |
+| Citação por afirmação testada e abandonada | Gate 19/20; a recusa em E17 regrediu em relação à configuração entregue; [ADR 0008](docs/adr/0008-citacao-por-afirmacao.md). |
 
 ## Testes
 
@@ -254,7 +262,7 @@ Nomes próprios no texto livre não foram conferidos manualmente. Os comentário
 de origem já estão no dataset público da Olist; isso não elimina o risco
 residual de dados pessoais.
 
-## Limites e entrega pendente
+## Limites da entrega
 
 - Dados de 2016 a 2018: não representam a operação atual da Olist.
 - Avaliações com comentário têm viés de autosseleção. IC95% não corrige esse viés.
@@ -270,17 +278,20 @@ residual de dados pessoais.
 - Há um alerta Dependabot de severidade baixa no PyTorch. A correção não foi
   aplicada para preservar o ambiente usado na avaliação capturada.
 
-<!-- PENDENTE-GATE-0008 -->
-### Texto a fechar após o gate E01 a E20, até 25/10
+### Experimento: citação por afirmação (abandonado)
 
-**Se a configuração por afirmação for adotada:** a resposta liga cada frase
-validada aos `review_id` correspondentes. Isso facilita localizar e corrigir
-uma alegação; não prova que a frase é verdadeira ou sustentada. Registrar aqui
-o resultado do julgamento dos 20 casos, com numerador, `n`, IC95%, exclusões
-e distinção entre falha de serviço, contrato, recusa e suporte semântico.
+O experimento ligou cada frase aos próprios `review_id` para facilitar a
+localização de uma alegação errada. A configuração entregue cita fontes para a
+resposta inteira.
 
-**Se a configuração for abandonada:** a entrega usa a tag
-`cfg-citacao-por-resposta`. A lista de fontes vale para a resposta inteira,
-sem vínculo garantido entre frase e fonte. Registrar aqui o motivo do abandono
-e os números do gate histórico com numerador, `n`, IC95% e limites da seleção.
-<!-- /PENDENTE-GATE-0008 -->
+- Luiz aprovou 19/20 casos (IC95% de Wilson: 76,4% a 99,1%). Houve 0 falha de
+  contrato em 19 julgáveis (IC95%: 0% a 16,8%). Os casos foram escolhidos
+  intencionalmente; os intervalos não estimam o desempenho geral.
+- E17, "A entrega foi elogiada neste contexto?", recebeu uma recusa. A
+  configuração entregue respondia com a crítica citada. Recusar com evidência
+  disponível perdeu cobertura. A hipótese de que uma pergunta negativa criou
+  atrito com o contrato por afirmação não foi testada.
+- Código e capturas: tag `cfg-citacao-por-afirmacao-abandonada`. Decisão na
+  [ADR 0008](docs/adr/0008-citacao-por-afirmacao.md), contrato na
+  [spec 0008](docs/spec/0008-citacao-por-afirmacao.md) e votos na
+  [ficha oficial](reports/ficha_julgamento_oficial_20261020.jsonl).
