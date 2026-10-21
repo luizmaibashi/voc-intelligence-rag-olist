@@ -1,6 +1,6 @@
 # ADR-0008 — Citação por afirmação como experimento reversível
 
-**Data:** 2026-10-18. **Status:** experimento e contrato da spec 0008 aprovados por Luiz em 18/10/2026; implementação local sem API pronta para revisão, gate novo pendente. **Baseline:** tag publicada `cfg-citacao-por-resposta` no commit `fe652b6`.
+**Data:** 2026-10-18. **Status:** **abandonado em 20/10/2026** (gate 19/20; ver "Resultado e decisão"). Experimento e contrato da spec 0008 aprovados por Luiz em 18/10/2026. **Entrega:** tag publicada `cfg-citacao-por-resposta` no commit `fe652b6`.
 
 ## Contexto e valor
 
@@ -52,6 +52,24 @@ Luiz definiu a ordem da rodada em 18/10/2026: concluir primeiro os 13 pareáveis
 **Operação manual e publicação:** Luiz executará a fase 1 exclusivamente neste PC em 20/10 UTC, antes das 21:00 locais. Agendamentos foram cancelados: o PC fica desligado e o sandbox padrão bloqueou DNS. O ledger de cota fica nesta máquina; nenhuma outra enviará chamadas. Ao terminar a fase 1 e registrar `N`, `n_julgáveis`, IC e decisão de parada, fazer commit e push de código, testes, spec/ADR 0008, `docs/aprendizado/MISSAO.md` e relatórios/capturas da fase 1. O julgamento poderá ocorrer na outra máquina após `git pull`, sem chamadas de API nela.
 
 **Critério de abandono:** se até **25/10/2026** o gate E01–E20 da configuração nova não tiver **20/20 casos resolvidos, julgados por Luiz e sem frase sem suporte**, registrar aqui o motivo e usar `cfg-citacao-por-resposta` na entrega. Falha de serviço pendente nessa data deixa o gate não aprovado; nada passa por omissão. README e vídeo seguem a configuração efetivamente entregue. Se aprovado, documentar aqui julgamento, custo observado e limites antes de atualizar README e roteiro. Não reescrever hashes, as duas respostas aprovadas nem o gate históricos como se pertencessem à configuração nova.
+
+## Resultado e decisão (20/10/2026, 21:15 local = 21/10 00:15Z)
+
+**Execução.** Fase 1 (13 pareáveis) em 20/10 UTC, com E02/E18 recuperados em reenvio autorizado por falha de serviço; fase 2 (`E01,E05,E13,E16,E17,E19,E20`) em 21/10 UTC, capturas `reports/geracao_citacao_afirmacao_fase2_lote1.jsonl` e `_lote2.jsonl`, hash `203ec986…` igual ao autorizado. Na fase 2, E13 e E16 tiveram `ServerError 503` na primeira tentativa e saída na segunda, conforme a política de repetição. Chamadas no ledger desta máquina: 20 em 19/10 (sem saída, `ConnectError`), 18 em 20/10 e 8 em 21/10 UTC.
+
+**Contrato.** `N = 0` falhas de contrato em 19 casos julgáveis (E20 é controle local), IC95% Wilson [0%; 16,8%]. `N_pareado = 0/13`. Previsão de Luiz: `N = 3`.
+
+**Julgamento de Luiz, frase a frase.** **19/20 aprovados** (IC95% Wilson [76,4%; 99,1%]); fase 1 13/13 e fase 2 6/7 (IC95% [48,7%; 97,4%]). Previsões: 17/20 no lote; 7/7 na fase 2 (errou por 1) e 4/4 recusas corretas (acertou). Os votos de E16 (recusa, inicialmente NS) e E20 (controle, inicialmente sem voto) foram revistos para S depois de o Claude apontar que a justificativa sustentava a recusa (E16) e que E20 tem contexto vazio por desenho, porque a avaliação curada isola geração e não mede retrieval (E20). A revisão foi influenciada e fica registrada como tal.
+
+**Reprovado: E17.** Pergunta "A entrega foi elogiada neste contexto?", fonte "muito demorada a entrega"; a configuração nova devolveu `sem_evidencia` (`status_esperado_compativel: false`). Pela regra fixada por Luiz em 19/10, antes de qualquer resultado, recusa em caso com `respondida` esperada não passa (perda de cobertura). A baseline respondeu E17 preservando a crítica (spec 0006, resultados da rodada julgada), então é **regressão** da configuração nova, não caso que nunca passou.
+
+**Leitura do critério.** E17 não tem frase, então "sem frase sem suporte" seria literalmente verdadeiro; essa leitura aprovaria por omissão e contraria o próprio critério ("nada passa por omissão") e a regra de 19/10. Também foi descartado reenviar E17 até passar: o executor recusa caso já enviado sob o mesmo hash (`src/eval/avaliar_geracao.py:272`), e repetir um reprovado mede sorte, não a configuração.
+
+**Decisão de Luiz: abandono.** O gate não tem 20/20 aprovados; a entrega usa `cfg-citacao-por-resposta`. README e vídeo seguem a tag; a demonstração de auditoria par a par fica como conferência manual de uma resposta aprovada (alternativa da tabela acima). O experimento entra no README como medido, não como funcionalidade.
+
+**Hipótese não testada para E17.** A pergunta exige resposta negativa ("não houve elogio"); no contrato por afirmação, cada frase precisa de fonte, e uma afirmação de ausência não tem comentário que a diga literalmente. O modelo pode preferir recusar a ancorar uma negação, atrito que a citação por resposta não tinha. "Azar" é a explicação alternativa, pouco provável com `temperature=0`, mas não excluída: `n = 1` tentativa. Luiz previu 2 recusas em 3 repetições; não houve medição. Testar exigiria reavaliação focal autorizada em código, com saída fora da ficha, e só vale se uma nova configuração (instrução para perguntas negativas) for experimentada depois da entrega.
+
+**Limite da ferramenta achado no processo.** `--validar` saía com código 0 mesmo com casos pendentes, e E20 nunca deixava de ser pendente. Correção em `docs/planejamento/BRIEF_CODEX_VALIDAR-01.md`; a ficha oficial E01 a E20, com os votos acima, será gerada depois dela em `reports/`. Os 13 julgamentos da fase 1 foram copiados por `(id, ordem)` com frase idêntica (ensaio reproduziu a ficha aprovada byte a byte).
 
 ## Referências
 
