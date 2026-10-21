@@ -31,6 +31,7 @@ segue a licença MIT em `LICENSE`.
 - `reports/e05_reavaliacao_20261007_02.jsonl`
 - `reports/eda_olist.md`
 - `reports/ficha_julgamento_fase1_20261020.jsonl`
+- `reports/ficha_julgamento_oficial_20261020.jsonl`
 - `reports/geracao_20261006_evidencias.json`
 - `reports/geracao_citacao_afirmacao_f1_canario_e03_20261020T1356.jsonl`
 - `reports/geracao_citacao_afirmacao_f1_e04-e06-e07-e08_20261020T1408.jsonl`
