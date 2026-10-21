@@ -10,6 +10,7 @@ nos reenvios; `reports/ficha_julgamento_fase1_20261020.jsonl` aprovada 13/13).
 Reserva: lote 1 = 8 chamadas, lote 2 = 4 (E20 não chama API); cabe na cota de 20.
 Não apertar Ctrl+C durante uma chamada: deixa envio sem resultado no ledger.
 
+> Registro histórico: o caminho é da máquina original. Para reproduzir, ajuste-o para a raiz do seu clone.
 ```powershell
 & {
     $ErrorActionPreference = 'Stop'

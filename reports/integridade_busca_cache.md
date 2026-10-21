@@ -54,6 +54,7 @@ encoder inválido. Suíte completa: **114 passed**, sem FutureWarning tolerado.
 
 Comando final, executado da raiz do projeto:
 
+> Registro histórico: o caminho é da máquina original. Para reproduzir, ajuste-o para a raiz do seu clone.
 ```powershell
 & 'C:/Users/Luiz Maibashi/AppData/Local/Programs/Python/Python313/python.exe' -m pytest tests -q -p no:cacheprovider --tb=short -W error::FutureWarning
 ```

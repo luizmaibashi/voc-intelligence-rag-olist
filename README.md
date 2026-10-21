@@ -113,7 +113,8 @@ Dois passos por pergunta ([spec 0007](docs/spec/0007-cli-resposta-gerada.md)):
 # 1. Prévia: busca real, contexto exato, alerta de PII e hash. Não chama API.
 & .venv/Scripts/python.exe -X utf8 -m src.demo --acao responder --pergunta "O que os clientes relatam sobre entregas atrasadas?" --nota-max 2 --situacao-entrega atrasado --k 10
 # 2. Envio: após ler o contexto, repetir com o hash impresso.
-& .venv/Scripts/python.exe -X utf8 -m src.demo --acao responder --pergunta "O que os clientes relatam sobre entregas atrasadas?" --nota-max 2 --situacao-entrega atrasado --k 10 --executar --aprovacao-sha256 <hash>
+$hash = 'cole-aqui-o-hash-impresso-na-previa'
+& .venv/Scripts/python.exe -X utf8 -m src.demo --acao responder --pergunta "O que os clientes relatam sobre entregas atrasadas?" --nota-max 2 --situacao-entrega atrasado --k 10 --executar --aprovacao-sha256 $hash
 ```
 
 O envio é bloqueado (código 3, sem API) se o hash não bater: qualquer mudança
