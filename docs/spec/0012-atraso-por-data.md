@@ -92,3 +92,13 @@ prévias estão em `reports/atraso_por_data_20261023.md`. Os quatro slides
 em `docs/video/slides/` foram conferidos visualmente: mostram 40.303 como
 denominador ou métricas de recuperação, sem o numerador antigo; não exigem
 reexportação. O Parquet regenerado fica fora do Git.
+
+**Liberação para gravação (2026-10-23).** Luiz leu os 30 textos das prévias no
+ambiente `.venv/sdk175` (`google-genai` 1.75.0), com código de
+`ARQUIVOS_CODIGO` igual ao de `81dedba`, e liberou
+E-A `28fb0e20214f31f163156580e6a1f3fddfcd18c6fa71fc890e5a607506b40a88`,
+E-B `72ea2402264ac2f80a6a7c3ea043a10de4b72209b6eddb07f53b2c1435bf68ec`
+e P15 `c53daa6570b52c72f4a9b289b7ae87d21be989beac77b7af34f9c729a8684e24`.
+Contexto idêntico ao da liberação de 21/10 (spec 0010), que fica substituída.
+O envio ao Gemini fica para a gravação. Qualquer edição em `ARQUIVOS_CODIGO`,
+configuração ou corpus exige nova prévia e nova liberação.

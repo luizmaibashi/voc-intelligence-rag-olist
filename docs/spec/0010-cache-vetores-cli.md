@@ -135,3 +135,6 @@ O envio ao Gemini fica para a gravação.
 
 Índice aproximado, banco persistente, mudar a busca ou os filtros, remedir P@10,
 qualquer chamada ao Gemini (os critérios usam só a prévia).
+
+**Substituída em 2026-10-23:** os hashes acima deixaram de valer com a spec
+0011 (código) e a normalização LF/CRLF; a liberação vigente está na spec 0012.
