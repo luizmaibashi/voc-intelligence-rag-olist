@@ -294,6 +294,8 @@ demonstração curada; não estima a confiabilidade em perguntas novas.
 | Protótipo com Gemini 3.1 Flash-Lite | Modelo e limites da escolha estão na [ADR 0006](docs/adr/0006-gerador-gemini-31-prototipo.md). |
 | Até duas tentativas para falha transitória | Repetição observável, sem repetir erro de contrato; [ADR 0007](docs/adr/0007-repeticao-transitoria-observavel.md). |
 | Citação por afirmação testada e abandonada | Gate 19/20; a recusa em E17 regrediu em relação à configuração entregue; [ADR 0008](docs/adr/0008-citacao-por-afirmacao.md). |
+| Busca híbrida (RRF) medida e não adotada | Critério escrito antes de medir; P@10 0,71 → 0,64 (n = 14): a fusão premia o vocabulário genérico e afunda o acerto exclusivo de cada busca; [ADR 0009](docs/adr/0009-busca-hibrida-rrf-nao-adotada.md). |
+| Tela local sobre o CLI, sem mudar os hashes | Trilha para o gestor e Modo técnico; paridade 3/3 com os hashes liberados; [ADR 0010](docs/adr/0010-tela-local.md). |
 
 ## Testes
 
@@ -323,9 +325,16 @@ $env:PYTHONPATH = '.venv/sdk175'
 python -m streamlit run src/tela/app.py --server.address localhost
 ```
 
+A aba **Perguntar** é uma trilha em cinco passos: pergunta e recorte, relatos encontrados,
+aprovação do envio (checkbox de leitura e botão), resposta com os relatos citados e
+conferência com a contagem de atrasos. O **Modo técnico** expõe filtros, `k`, score e o hash
+colado à mão, como no CLI. As abas Números e Execuções mostram a contagem e o registro de
+chamadas, com n e IC. Decisões e limites: [ADR 0010](docs/adr/0010-tela-local.md).
+
 A tela exige corpus e pesos locais. Antes do vídeo, execute
 `python -X utf8 scripts/paridade_tela.py` e confirme `ok` nos três casos.
-O envio real exige a chave Gemini no ambiente e a liberação pelo hash da prévia.
+O envio real exige a chave Gemini no ambiente; o servidor recusa qualquer hash diferente da
+prévia lida. "Simular" percorre o fluxo sem chamar o Gemini.
 
 ## Licença e atribuição
 
@@ -351,9 +360,9 @@ residual de dados pessoais.
   [Relatório](reports/latencia_capturas_20261023.md).
 - E19 testou uma injeção indireta sintética em chamada real; houve recusa sem
   prazo inventado naquele caso. [Limite da evidência](reports/injecao_indireta_20261023.md).
-- O 0,72 de Precisão@10 da ADR 0002 foi medido na busca usada no pooling; a busca
-  do produto difere por maiúsculas (P09 sem filtro: 0,6 contra 0,7). As outras
-  9 perguntas não foram remedidas na busca do produto.
+- O 0,72 de Precisão@10 da ADR 0002 foi medido na busca usada no pooling. Remedidas as
+  14 perguntas na busca do produto, a Precisão@10 é 0,71 [0,55; 0,86] (n = 14, um anotador,
+  IC por bootstrap; [relatório](reports/ganho_hibrida_20261023.md)).
 - P09 permanece congelado: só a liderança de prazo/rapidez foi liberada;
   ranking completo não foi aprovado.
 - Exemplos reais são demonstração (n = 3 perguntas no CLI, seleção intencional),
