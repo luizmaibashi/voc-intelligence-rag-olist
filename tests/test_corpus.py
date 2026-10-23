@@ -78,6 +78,19 @@ def test_corpus_classifica_entrega(tabelas):
     assert c.loc["r4", "dias_atraso"] == 5
 
 
+def test_corpus_compara_entrega_por_data_sem_alterar_dias_atraso(tabelas):
+    reviews, orders, items, products = tabelas
+    orders = orders.copy()
+    orders.loc[orders.order_id.eq("o3"), "order_delivered_customer_date"] = pd.Timestamp("2018-01-15 14:00")
+    orders.loc[orders.order_id.eq("o5"), "order_delivered_customer_date"] = pd.Timestamp("2018-01-16 00:01")
+    corpus = montar_corpus(reviews, orders, items, products).set_index("review_id")
+    assert corpus.loc["r2", "situacao_entrega"] == "no_prazo"
+    assert corpus.loc["r2", "dias_atraso"] == 0
+    assert corpus.loc["r4", "situacao_entrega"] == "atrasado"
+    assert corpus.loc["r4", "dias_atraso"] == 1
+    assert corpus.loc["r1", "situacao_entrega"] == "nao_entregue"
+
+
 def test_corpus_junta_categorias_do_pedido(tabelas):
     c = montar_corpus(*tabelas).set_index("review_id")
     assert c.loc["r2", "categorias"] == "beleza_saude|cama_mesa_banho"

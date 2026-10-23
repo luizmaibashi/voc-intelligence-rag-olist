@@ -25,7 +25,8 @@ def eh_ausencia_mascarada(texto: str) -> bool:
 
 def _situacao_entrega(pedidos: pd.DataFrame) -> pd.Series:
     entregue = pedidos.order_delivered_customer_date.notna()
-    atrasado = pedidos.order_delivered_customer_date > pedidos.order_estimated_delivery_date
+    atrasado = (pedidos.order_delivered_customer_date.dt.normalize()
+                > pedidos.order_estimated_delivery_date.dt.normalize())
     return pd.Series("no_prazo", index=pedidos.index).mask(atrasado, "atrasado").mask(~entregue, "nao_entregue")
 
 
