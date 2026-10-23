@@ -102,3 +102,31 @@ def test_cli_rejeita_entrada_ignorada(args):
 def test_cli_arquivo_ausente_falha(tmp_path, capsys):
     assert demo.main(["--acao", "contar", "--corpus", str(tmp_path / "ausente")]) == 2
     assert "Falha local" in capsys.readouterr().err
+
+
+def test_filtro_de_periodo_e_categoria_aparecem_na_busca():
+    corpus = demo.corpus_sintetico()
+    saida = demo.recuperar(corpus, "atraso", ModeloFalso(), categoria="sintetica",
+                          compra_de="2018-02-01", compra_ate="2018-02-01")
+    assert [f["review_id"] for f in saida["fontes"]] == ["sintetico-02"]
+    assert saida["filtros"]["compra_de"] == "2018-02-01"
+
+
+def test_recorte_sem_resultado_recusa_local_sem_gerador(monkeypatch):
+    monkeypatch.setattr(demo, "_criar_gerador", lambda: pytest.fail("não criar cliente"))
+    saida = demo.responder_cli(demo.corpus_sintetico(), "atraso", ModeloFalso(),
+                               categoria="moveis", executar=True, aprovacao_sha256="qualquer")
+    assert saida["modo"] == "recusa_local_sem_api"
+    assert saida["resposta"]["status"] == "sem_evidencia"
+
+
+def test_filtros_ausentes_preservam_chaves_historicas_do_hash():
+    saida = demo.recuperar(demo.corpus_sintetico(), "atraso", ModeloFalso())
+    assert set(saida["filtros"]) == {"k", "nota_min", "nota_max", "situacao_entrega"}
+
+
+def test_corpus_sem_data_aceita_busca_antiga_mas_recusa_filtro_temporal():
+    corpus = demo.corpus_sintetico().drop(columns="data_compra")
+    assert demo.recuperar(corpus, "atraso", ModeloFalso())["fontes"]
+    with pytest.raises(ValueError, match="data_compra"):
+        demo.recuperar(corpus, "atraso", ModeloFalso(), compra_de="2018-01-01")

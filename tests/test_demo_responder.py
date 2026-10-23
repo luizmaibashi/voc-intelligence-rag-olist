@@ -76,8 +76,10 @@ def test_hash_estavel_e_sensivel_a_filtro(tmp_path):
     a = previa(registro=registro)["hash"]
     b = previa(registro=registro)["hash"]
     c = previa(registro=registro, situacao_entrega="atrasado")["hash"]
+    d = previa(registro=registro, categoria="sintetica", compra_de="2018-02-01")["hash"]
     assert a == b
     assert a != c
+    assert a != d
 
 
 def test_executar_sem_hash_ou_hash_divergente_bloqueia(tmp_path):

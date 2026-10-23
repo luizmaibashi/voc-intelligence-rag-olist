@@ -93,6 +93,11 @@ CSV bruto, corpus processado, PDF do enunciado e credenciais ficam fora do Git.
 
 Exibe candidatos com ID, texto, nota, situação, score e filtros efetivamente
 aplicados. Não gera resumo, não consulta API e não estima frequência de temas.
+O recorte opcional `--categoria moveis_decoracao --compra-de 2018-01-01
+--compra-ate 2018-01-31` usa a categoria exata do produto e a **data da
+compra**, com início e fim inclusivos. Um pedido com várias categorias pertence
+a cada uma delas. Os filtros são escolhidos pelo usuário, não inferidos da
+pergunta. Use-os também com `--acao responder`; a prévia mostra o recorte.
 Os textos exibidos são para revisão local; não publique ou envie novos textos
 sem revisar dados pessoais e autorização do contexto.
 
@@ -141,6 +146,14 @@ a resposta é simulada e não demonstra suporte factual do Gemini.
 A prévia imprime contexto e SHA-256 do payload. Esse hash muda se mudarem
 pergunta, filtros, ordem ou texto das evidências, configuração ou código; não
 é uma credencial nem dispensa leitura humana do contexto antes de um envio.
+Sem os filtros novos, as chaves históricas de filtro do payload permanecem as
+mesmas. **O hash da prévia do CLI muda com esta edição de código**, mesmo para
+uma pergunta antiga: gere e revise nova prévia. Recortes novos mudam as
+evidências e não estão cobertos pelo julgamento histórico de 20 casos; revise
+e avalie antes de alegar qualidade nesse uso.
+As prévias de E-A, E-B e P15 foram regeneradas e comparadas com as liberações
+anteriores em [relatório próprio](reports/previas_demo_0011_20261023.md). Os
+novos hashes ainda não são autorização para envio.
 As capturas da avaliação usam `google-genai==1.75.0` em `.venv/sdk175` com
 `python` do sistema. Nesse ambiente já preparado, confira o hash do lote sem
 chamar a API:
@@ -310,8 +323,14 @@ residual de dados pessoais.
 - Avaliações com comentário têm viés de autosseleção. IC95% não corrige esse viés.
 - Top-k recupera exemplos, não prevalência de um tema nem causa de reclamação.
 - Filtros de nota e situação estão implementados e medidos em 5 perguntas;
-  período e categoria não são filtros da entrada atual. O filtro é escolhido
-  pelo usuário no CLI, não inferido da pergunta.
+  categoria e período de compra são filtros opcionais novos, ainda sem medição
+  de ganho de recuperação. O filtro é escolhido pelo usuário no CLI, não
+  inferido da pergunta. [Spec 0011](docs/spec/0011-filtros-categoria-periodo.md).
+- A latência mediana observada na rodada 04 foi 5,32 s em 18 tentativas sem
+  erro de integração; é tempo do gerador, não do CLI completo nem SLA.
+  [Relatório](reports/latencia_capturas_20261023.md).
+- E19 testou uma injeção indireta sintética em chamada real; houve recusa sem
+  prazo inventado naquele caso. [Limite da evidência](reports/injecao_indireta_20261023.md).
 - O 0,72 de Precisão@10 da ADR 0002 foi medido na busca usada no pooling; a busca
   do produto difere por maiúsculas (P09 sem filtro: 0,6 contra 0,7). As outras
   9 perguntas não foram remedidas na busca do produto.

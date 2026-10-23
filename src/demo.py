@@ -45,12 +45,15 @@ def quantificar(corpus: pd.DataFrame) -> dict:
 
 def recuperar(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
               nota_min=None, nota_max=None, situacao_entrega=None,
+              categoria=None, compra_de=None, compra_ate=None,
               cache_vetores: Path | None = None) -> dict:
     if not isinstance(pergunta, str) or not pergunta.strip():
         raise ValueError("Informe uma pergunta não vazia.")
     colunas = {"review_id", "texto", "nota", "situacao_entrega", "categorias"}
     if not isinstance(corpus, pd.DataFrame) or not colunas.issubset(corpus.columns):
         raise ValueError("Corpus sem as colunas da busca.")
+    if (compra_de is not None or compra_ate is not None) and "data_compra" not in corpus:
+        raise ValueError("Filtro de período exige data_compra no corpus.")
     if corpus.empty or not corpus.texto.map(
             lambda v: isinstance(v, str) and bool(v.strip())).all():
         raise ValueError("Corpus vazio ou comentário inválido.")
@@ -64,11 +67,16 @@ def recuperar(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
         criar_indice(con, corpus, vetores)
         achados = buscar(con, codificar_pergunta(modelo, pergunta), k=k,
                          nota_min=nota_min, nota_max=nota_max,
-                         situacao_entrega=situacao_entrega)
+                         situacao_entrega=situacao_entrega, categoria=categoria,
+                         compra_de=compra_de, compra_ate=compra_ate)
+    filtros = {"k": k, "nota_min": nota_min, "nota_max": nota_max,
+               "situacao_entrega": situacao_entrega}
+    filtros.update({nome: valor for nome, valor in
+                    {"categoria": categoria, "compra_de": compra_de,
+                     "compra_ate": compra_ate}.items() if valor is not None})
     return {"modo": "busca_local_sem_geracao", "pergunta": pergunta,
             "modelo_embedding": MODELO,
-            "filtros": {"k": k, "nota_min": nota_min, "nota_max": nota_max,
-                        "situacao_entrega": situacao_entrega},
+            "filtros": filtros,
             "fontes": achados.to_dict("records"),
             "aviso": "Resultados são evidências candidatas, não uma resposta nem frequência temática.",
             "gate_demo": "bloqueado"}
@@ -129,6 +137,7 @@ def _gerar_simulado(pergunta, evidencias):
 
 def responder_cli(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
                   nota_min=None, nota_max=None, situacao_entrega=None,
+                  categoria=None, compra_de=None, compra_ate=None,
                   executar: bool = False, aprovacao_sha256=None, gerador: str = "gemini",
                   registro: Path = REGISTRO_PADRAO, agora: datetime | None = None,
                   criar_gerador=None, cache_vetores: Path | None = None) -> dict:
@@ -137,6 +146,7 @@ def responder_cli(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
         raise ValueError("Gerador deve ser gemini ou falso.")
     busca = recuperar(corpus, pergunta, modelo, k=k, nota_min=nota_min,
                       nota_max=nota_max, situacao_entrega=situacao_entrega,
+                      categoria=categoria, compra_de=compra_de, compra_ate=compra_ate,
                       cache_vetores=cache_vetores)
     evidencias = [{"review_id": f["review_id"], "texto": f["texto"]} for f in busca["fontes"]]
     base = {"pergunta": pergunta, "modelo_embedding": MODELO, "filtros": busca["filtros"],
@@ -146,6 +156,9 @@ def responder_cli(corpus: pd.DataFrame, pergunta: str, modelo, *, k: int = 10,
         citadas = [f for f in busca["fontes"] if f["review_id"] in resposta.review_ids]
         return {**base, "modo": modo, "resposta": asdict(resposta), "fontes_citadas": citadas,
                 "aviso": "Citação válida não prova que cada frase tem suporte; confira as fontes."}
+
+    if not evidencias:
+        return com_resposta("recusa_local_sem_api", responder(pergunta, [], _gerar_simulado))
 
     if gerador == "falso":
         return com_resposta("simulado", responder(pergunta, evidencias, _gerar_simulado))
@@ -195,9 +208,13 @@ def main(argv=None) -> int:
     parser.add_argument("--nota-min", type=int)
     parser.add_argument("--nota-max", type=int)
     parser.add_argument("--situacao-entrega", choices=["atrasado", "no_prazo", "nao_entregue"])
+    parser.add_argument("--categoria", help="Categoria exata do produto, como moveis_decoracao.")
+    parser.add_argument("--compra-de", help="Data inicial da compra, inclusiva (AAAA-MM-DD).")
+    parser.add_argument("--compra-ate", help="Data final da compra, inclusiva (AAAA-MM-DD).")
     args = parser.parse_args(argv)
     filtros_informados = any(v is not None for v in
-                            (args.nota_min, args.nota_max, args.situacao_entrega))
+                            (args.nota_min, args.nota_max, args.situacao_entrega,
+                             args.categoria, args.compra_de, args.compra_ate))
     com_pergunta = {"buscar", "responder"}
     if args.acao not in com_pergunta and (args.pergunta is not None or filtros_informados or args.k != 10):
         parser.error("Pergunta/filtros/k só se aplicam às ações buscar e responder.")
@@ -215,14 +232,17 @@ def main(argv=None) -> int:
         elif args.acao == "responder":
             saida = responder_cli(carregar_corpus(args.corpus), args.pergunta, carregar_modelo(),
                                   k=args.k, nota_min=args.nota_min, nota_max=args.nota_max,
-                                  situacao_entrega=args.situacao_entrega, executar=args.executar,
+                                  situacao_entrega=args.situacao_entrega, categoria=args.categoria,
+                                  compra_de=args.compra_de, compra_ate=args.compra_ate,
+                                  executar=args.executar,
                                   aprovacao_sha256=args.aprovacao_sha256, gerador=args.gerador,
                                   registro=REGISTRO_PADRAO, criar_gerador=_criar_gerador,
                                   cache_vetores=CACHE_VETORES)
         else:
             saida = recuperar(carregar_corpus(args.corpus), args.pergunta, carregar_modelo(),
                               k=args.k, nota_min=args.nota_min, nota_max=args.nota_max,
-                              situacao_entrega=args.situacao_entrega,
+                              situacao_entrega=args.situacao_entrega, categoria=args.categoria,
+                              compra_de=args.compra_de, compra_ate=args.compra_ate,
                               cache_vetores=CACHE_VETORES)
         print(json.dumps(saida, ensure_ascii=False, indent=2, allow_nan=False))
         return 0

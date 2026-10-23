@@ -59,14 +59,16 @@ def responder(pergunta: str, evidencias: list[dict],
 def executar_rag(pergunta: str, con: duckdb.DuckDBPyConnection, modelo_embedding,
                 gerar: Callable[[str, list[dict]], dict], k: int = 10,
                 nota_min: int | None = None, nota_max: int | None = None,
-                situacao_entrega: str | None = None) -> Resposta:
+                situacao_entrega: str | None = None, categoria: str | None = None,
+                compra_de: str | None = None, compra_ate: str | None = None) -> Resposta:
     """Liga embedding, busca exata e geração; não responde frequência por top-k."""
     if not isinstance(pergunta, str) or not pergunta.strip():
         return _recusar("Pergunta vazia ou inválida.")
     try:
         vetor = codificar_pergunta(modelo_embedding, pergunta)
         achados = buscar(con, vetor, k=k, nota_min=nota_min,
-                         nota_max=nota_max, situacao_entrega=situacao_entrega)
+                         nota_max=nota_max, situacao_entrega=situacao_entrega,
+                         categoria=categoria, compra_de=compra_de, compra_ate=compra_ate)
     except Exception:
         return _erro("A recuperação de avaliações falhou nesta consulta.")
     evidencias = achados[["review_id", "texto"]].to_dict("records")

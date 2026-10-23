@@ -112,3 +112,38 @@ def test_busca_aceita_todas_as_situacoes_do_corpus(situacao):
         criar_indice(con, docs, np.stack([vetor(0)] * 3))
         obtido = buscar(con, vetor(0), situacao_entrega=situacao)
     assert obtido.review_id.tolist() == docs.loc[docs.situacao_entrega == situacao, "review_id"].tolist()
+
+
+def test_categoria_exata_e_periodo_inclusivo_filtram_antes_do_ranking():
+    docs = pd.DataFrame({
+        "review_id": ["a", "b", "c", "d"],
+        "texto": ["um", "dois", "tres", "quatro"],
+        "nota": [5] * 4, "situacao_entrega": ["no_prazo"] * 4,
+        "categorias": ["moveis", "moveis|decoracao", "moveis_escritorio", "moveis"],
+        "data_compra": pd.to_datetime(["2018-01-01", "2018-01-31",
+                                       "2018-01-15", "2018-02-01"]),
+    })
+    with duckdb.connect() as con:
+        criar_indice(con, docs, np.stack([vetor(0)] * 4))
+        obtido = buscar(con, vetor(0), categoria="moveis",
+                        compra_de="2018-01-01", compra_ate="2018-01-31")
+    assert obtido.review_id.tolist() == ["a", "b"]
+
+
+@pytest.mark.parametrize("filtros", [
+    {"categoria": ""}, {"categoria": "moveis|decoracao"},
+    {"compra_de": "2018-02-30"}, {"compra_ate": "2018-01-1"},
+    {"compra_de": "2018-02-01", "compra_ate": "2018-01-31"},
+])
+def test_filtros_novos_invalidos_falham_visivelmente(filtros):
+    with pytest.raises(ValueError):
+        buscar(duckdb.connect(), vetor(0), **filtros)
+
+
+def test_indice_sem_data_rejeita_periodo_em_vez_de_retornar_vazio():
+    docs = pd.DataFrame({"review_id": ["a"], "texto": ["Chegou"], "nota": [5],
+                         "situacao_entrega": ["no_prazo"], "categorias": ["moveis"]})
+    with duckdb.connect() as con:
+        criar_indice(con, docs, np.stack([vetor(0)]))
+        with pytest.raises(ValueError, match="data_compra"):
+            buscar(con, vetor(0), compra_de="2018-01-01")
