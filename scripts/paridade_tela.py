@@ -1,5 +1,10 @@
 """Confere os hashes liberados sem criar cliente Gemini."""
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from src.demo import (CACHE_VETORES, RAIZ, REGISTRO_PADRAO, carregar_corpus,
                       carregar_modelo, responder_cli)
 from src.tela.logica import argumentos_responder

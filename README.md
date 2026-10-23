@@ -311,7 +311,8 @@ Para gerar outra EDA, `python src/eda/01_eda_reviews.py` sobrescreve
 
 ## Tela local
 
-Streamlit 1.65.0, publicado em 02/10/2026, fixado em `requirements-app.txt`.
+Streamlit 1.56.0, publicado em 31/03/2026, já instalado no ambiente da demo e
+fixado em `requirements-app.txt`.
 No ambiente do projeto, instale sem alterar dependências existentes:
 
 ```powershell
@@ -319,7 +320,7 @@ python -m pip freeze > .venv/constraints-tela.txt
 python -m pip install -r requirements-app.txt -c .venv/constraints-tela.txt
 python -m pip check
 $env:PYTHONPATH = '.venv/sdk175'
-python -m streamlit run src/tela/app.py
+python -m streamlit run src/tela/app.py --server.address localhost
 ```
 
 A tela exige corpus e pesos locais. Antes do vídeo, execute
