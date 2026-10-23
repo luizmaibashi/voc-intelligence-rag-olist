@@ -68,12 +68,14 @@ Expand-Archive olist.zip -DestinationPath data/raw
 & .venv/Scripts/python.exe -X utf8 -m src.preprocessing.corpus
 ```
 
-Conferência da reprodução (2026-10-17, máquina limpa): 42.174 documentos,
-36.453 textos distintos, 4.339 atrasadas em n = 40.303 entregues
-(10,77%; IC95% de Wilson [10,47%; 11,07%]) e 372/372 textos
-do gabarito julgado idênticos. Hash diferente do zip indica outra versão da
-base: trate como nova configuração. Detalhe em
-[reports/demo_cli_20261017.md](reports/demo_cli_20261017.md).
+Conferência atual (2026-10-23): 42.174 documentos, 36.453 textos distintos,
+3.813 atrasadas em n = 40.303 avaliações com comentário de pedidos entregues
+(9,46%; IC95% de Wilson [9,18%; 9,75%]). A mudança classifica como no prazo
+uma entrega feita em qualquer horário do dia prometido. A reprodução de
+2026-10-17 verificou também 372/372 textos do gabarito julgado idênticos; sua
+contagem histórica usa a antiga comparação por horário
+([captura datada](reports/demo_cli_20261017.md)). Hash diferente do zip indica
+outra versão da base: trate como nova configuração.
 
 Título e mensagem formam um documento por avaliação. A limpeza conserva
 negação, acento e comentários curtos; elimina texto vazio e ausência mascarada.

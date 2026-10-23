@@ -1,24 +1,25 @@
 # Spec 0012 — Situação de entrega comparada por data
 
-**Data:** 2026-10-23. **Status:** proposta, antes do código.
+**Data:** 2026-10-23. **Status:** implementada localmente; prévias pendentes de liberação.
 **Dono da decisão:** Luiz Maibashi.
 
 ## Problema medido
 
-`src/preprocessing/corpus.py:27` compara `order_delivered_customer_date`
+Antes desta mudança, `src/preprocessing/corpus.py` comparava `order_delivered_customer_date`
 (data e hora) com `order_estimated_delivery_date` (sempre 00:00). Entrega às
-14h do dia prometido vira `atrasado`.
+14h do dia prometido era classificada como `atrasado`.
 
-No corpus atual, 526 de 4.339 avaliações `atrasado` têm `dias_atraso == 0`
+No corpus anterior, 526 avaliações `atrasado` tinham `dias_atraso == 0`
 (entregues no dia previsto). Na população de entregues (n = 40.303):
 
 | Regra | Atrasados | Proporção | IC95% Wilson |
 |---|---:|---:|---|
-| Horário (atual) | 4.339 | 10,77% | 10,47% a 11,07% |
-| Data (proposta) | 3.813 | 9,46% | 9,18% a 9,75% |
+| Horário (histórica) | ver [linha de base datada](../../reports/atraso_por_data_20261023.md) | ver relatório | ver relatório |
+| Data (vigente) | 3.813 | 9,46% | 9,18% a 9,75% |
 
-Os intervalos não se sobrepõem. "Atrasado" para o gestor é "chegou depois do
-dia prometido"; a regra atual mede outra coisa.
+Os intervalos da regra anterior e da vigente não se sobrepõem. "Atrasado"
+para o gestor é "chegou depois do dia prometido"; a regra anterior media
+outra coisa.
 
 ## Escopo
 
@@ -28,7 +29,7 @@ dia prometido"; a regra atual mede outra coisa.
 2. Regenerar o corpus e recontar. Reportar contagem, `n` e IC95% Wilson.
 3. ADR 0004: registrar a regra anterior, o achado (526) e o motivo da troca.
 4. Atualizar `reports/dicionario_olist.md`, README, roteiro, slides e qualquer
-   ocorrência de `4.339`, `4339`, `10,77` ou `10.77` (buscar no repositório
+   ocorrência dos números da regra anterior (buscar no repositório
    inteiro, inclusive `docs/video/`). Relatórios datados históricos
    (`reports/*_2026MMDD.md`) ficam como estão, com nota se forem citados.
 5. Reabrir o P01 da spec 0009 (17/30 dentro do filtro `atrasado`) e reportar se
@@ -79,8 +80,15 @@ isso entra **antes** da regeneração final das prévias.
 1. Teste: entrega no dia previsto (qualquer hora) → `no_prazo`; dia seguinte
    → `atrasado`; sem data real → `nao_entregue`.
 2. Contagem nova reproduzível pelo CLI, com `n` e IC.
-3. Busca de `4339|4\.339|10,77|10\.77` sem ocorrência fora dos relatórios
-   históricos anotados.
+3. Busca dos números da regra anterior sem ocorrência fora dos relatórios
+   datados com linha de base histórica anotada.
 4. Suíte local passa; nenhuma chamada de API.
 5. Commits pequenos: (a) regra + teste + corpus, (b) ADR + docs + vídeo.
 
+## Resultado
+
+Contagem, linha de base histórica, recontagem de P01 e hashes finais das três
+prévias estão em `reports/atraso_por_data_20261023.md`. Os quatro slides
+em `docs/video/slides/` foram conferidos visualmente: mostram 40.303 como
+denominador ou métricas de recuperação, sem o numerador antigo; não exigem
+reexportação. O Parquet regenerado fica fora do Git.

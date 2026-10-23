@@ -209,3 +209,8 @@ são todos nota 1 ou 2. Em P02, 10 dos 14 relatos relevantes de pedido que não 
 estão em pedidos marcados atrasado ou no prazo: a situação `nao_entregue` cobre mal
 o que o cliente chama de "nunca chegou". Em P01, 13 das 30 reclamações de atraso
 estão fora do filtro `atrasado` (7 no prazo, 6 não entregue): custo de revocação.
+
+**Recontagem em 2026-10-23:** após a regra por data da spec 0012, o mesmo
+julgamento humano de P01 tem **15 de 30** relatos relevantes dentro do filtro
+`atrasado` (9 `no_prazo`, 6 `nao_entregue`). A tabela acima preserva o
+resultado histórico da regra por horário. Não houve novo julgamento humano.

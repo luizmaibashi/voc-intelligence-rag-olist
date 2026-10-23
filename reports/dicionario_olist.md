@@ -16,7 +16,7 @@ O grão é **uma avaliação com comentário por `review_id`**. O corpus histór
 | `data_avaliacao` | `review_creation_date`. | Data da avaliação, distinta da data da compra. |
 | `data_compra` | `order_purchase_timestamp` em `orders`. | Período da compra; limite inclusivo quando usado como filtro. |
 | `order_status` | Estado do pedido em `orders`. | Diagnóstico; não equivale à situação calculada da entrega. |
-| `situacao_entrega` | Com data real de entrega ausente: `nao_entregue`; data real posterior à estimada: `atrasado`; demais casos: `no_prazo`. | `nao_entregue` agrega estados diversos, inclusive cancelamento e trânsito; não prova perda definitiva. |
+| `situacao_entrega` | Com data real de entrega ausente: `nao_entregue`; dia real posterior ao dia estimado: `atrasado`; demais casos: `no_prazo`. | Horário dentro do dia prometido não conta como atraso; `nao_entregue` agrega estados diversos, inclusive cancelamento e trânsito. |
 | `dias_atraso` | Data real da entrega menos data estimada, em dias. | Pode ser negativo no prazo; nulo sem datas necessárias. |
 | `categorias` | Categorias dos produtos do pedido, únicas e ordenadas, separadas por `|`. | Sem categoria vira `sem_categoria`; um pedido pode conter várias categorias. |
 | `freq_texto` | Número de documentos com o mesmo `texto` após conversão para minúsculas. | Repetição literal, não frequência de tema. |
@@ -33,6 +33,6 @@ partir de `texto`; não são coluna do Parquet do corpus.
 `situacao_entrega`, `categorias` e `data_compra` recortam as avaliações antes
 da busca. Para medir atrasos, a população elegível é a de avaliações com
 comentário associadas a pedidos entregues (`atrasado` ou `no_prazo`):
-4.339 de 40.303, 10,77% (IC95% de Wilson: 10,47% a 11,07%). Isso não é a
+3.813 de 40.303, 9,46% (IC95% de Wilson: 9,18% a 9,75%). Isso não é a
 taxa de atraso de todos os pedidos da Olist. Top-k de similaridade não mede
 prevalência de reclamação ou elogio.

@@ -5,7 +5,7 @@
 - [Introduction to Information Retrieval — avaliação de resultados ordenados](https://nlp.stanford.edu/IR-book/html/htmledition/evaluation-of-ranked-retrieval-results-1.html):top-k e precisão@k; seleção por ranking não é desenho amostral representativo.
 - ../spec/0002-frequencia-atrasos.md: definição da população e contagem do TC4.
 - ../adr/0001-corpus-limpeza-minima-sem-chunking.md: documento por avaliação, limpeza e metadados.
-- ../../reports/conferencia_corpus_real_20261007.md: captura de busca e contagem4.339/40.303,10,77%,IC95%[10,47%;11,07%]. Consultar somente trecho necessário.
+- ../../reports/conferencia_corpus_real_20261007.md: captura histórica da regra por horário; a regra por data vigente está no ADR 0004. Consultar somente trecho necessário.
 
 ## Observabilidade e avaliação — aulas futuras
 

@@ -28,6 +28,17 @@ Portanto, o resultado não é taxa de atraso de todos os pedidos. O metadado
 depende da estimativa e da data efetiva de entrega; mudanças em sua definição
 exigem revalidar esta contagem.
 
+## Revisão de 2026-10-23 — atraso por dia prometido
+
+A regra inicial comparava timestamps completos. Como a data estimada da Olist
+está sempre à meia-noite, 526 avaliações classificadas `atrasado`
+tinham `dias_atraso == 0`: a entrega ocorreu no próprio dia prometido. Para o
+gestor, atraso significa chegar **depois do dia** prometido. A classificação
+passou a comparar apenas as datas; `nao_entregue` e o cálculo de `dias_atraso`
+permanecem. No mesmo corpus de 40.303 avaliações com comentário de pedidos
+entregues, são 3.813 atrasadas (9,46%; IC95% de Wilson 9,18% a 9,75%).
+As capturas datadas preservam a regra e os números antigos como histórico.
+
 ## Falsificação
 
 `contar_atrasos` deve bater com a contagem independente do Pandas no mesmo
