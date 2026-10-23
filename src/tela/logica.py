@@ -22,6 +22,70 @@ PERGUNTAS_DEMO = (
      "hash": "c53daa6570b52c72f4a9b289b7ae87d21be989beac77b7af34f9c729a8684e24"},
 )
 
+ROTULOS_PERGUNTAS = {
+    "Relatos de atraso": "E-A",
+    "O que veio depois do atraso": "E-B",
+    "Prazo oficial de reembolso": "P15",
+}
+
+SITUACOES = {
+    "atrasado": "entrega atrasada",
+    "no_prazo": "no prazo",
+    "nao_entregue": "não entregue",
+}
+
+
+def caso_por_rotulo(rotulo: str) -> dict | None:
+    identificador = ROTULOS_PERGUNTAS.get(rotulo)
+    return next((caso for caso in PERGUNTAS_DEMO if caso["id"] == identificador), None)
+
+
+def situacao_legivel(situacao: str | None) -> str:
+    return SITUACOES.get(situacao, situacao or "todas as situações")
+
+
+def descricao_recorte(nota_min=None, nota_max=None, situacao=None) -> str:
+    partes = []
+    if nota_min is not None:
+        partes.append(f"nota a partir de {nota_min}")
+    if nota_max is not None:
+        partes.append(f"nota até {nota_max}")
+    if situacao is not None:
+        partes.append(situacao_legivel(situacao))
+    return "Recorte: " + (" · ".join(partes) if partes else "todos os comentários")
+
+
+def argumentos_trilha(pergunta, nota_min=None, nota_max=None, situacao=None) -> dict:
+    return argumentos_responder(pergunta, 10, nota_min, nota_max, situacao,
+                                None, None, None)
+
+
+def posicoes_citacoes(contexto: list[dict], ids: list[str]) -> list[int | str]:
+    posicoes = {fonte["review_id"]: posicao
+                for posicao, fonte in enumerate(contexto, 1)}
+    return [posicoes.get(identificador, "fora dos relatos aprovados")
+            for identificador in ids]
+
+
+def contagem_citacoes_aprovadas(posicoes: list[int | str]) -> tuple[int, int]:
+    return sum(isinstance(posicao, int) for posicao in posicoes), len(posicoes)
+
+
+def hash_envio_trilha(previa: dict | None, revisado: bool,
+                      chave_atual: str, chave_previa: str | None) -> str | None:
+    """Entrega somente o hash da prévia válida para a entrada lida."""
+    if not previa or not revisado or chave_atual != chave_previa:
+        return None
+    return previa.get("hash") or None
+
+
+def inteiro_pt(valor: int) -> str:
+    return f"{valor:,}".replace(",", ".")
+
+
+def percentual_pt(valor: float, casas: int = 2) -> str:
+    return f"{valor:.{casas}%}".replace(".", ",")
+
 MENSAGENS_STATUS = {
     "respondida": "Resposta com fontes citadas",
     "sem_evidencia": "Sem evidência nos relatos: o sistema recusou responder",
