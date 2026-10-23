@@ -10,6 +10,16 @@ from src import demo
 from src.rag import liberacao
 from tests.test_demo import ModeloFalso
 
+
+def test_digest_codigo_independe_do_fim_de_linha(tmp_path, monkeypatch):
+    caminho = tmp_path / "modulo.py"
+    monkeypatch.setattr(liberacao, "RAIZ", tmp_path)
+    monkeypatch.setattr(liberacao, "ARQUIVOS_CODIGO", ("modulo.py",))
+    caminho.write_bytes(b"a = 1\nb = 2\n")
+    digest_lf = liberacao.digest_codigo()
+    caminho.write_bytes(b"a = 1\r\nb = 2\r\n")
+    assert liberacao.digest_codigo() == digest_lf
+
 AGORA = datetime(2026, 10, 16, 12, 0, tzinfo=timezone.utc)
 PERGUNTA = "O que os clientes relatam sobre atraso?"
 

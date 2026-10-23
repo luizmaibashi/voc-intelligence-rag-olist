@@ -28,7 +28,7 @@ class EnvioBloqueado(ValueError):
 
 
 def digest_codigo() -> dict:
-    return {nome: hashlib.sha256((RAIZ / nome).read_bytes()).hexdigest()
+    return {nome: hashlib.sha256((RAIZ / nome).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
             for nome in ARQUIVOS_CODIGO}
 
 
