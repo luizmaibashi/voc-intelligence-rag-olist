@@ -10,11 +10,11 @@ nos reenvios; `reports/ficha_julgamento_fase1_20261020.jsonl` aprovada 13/13).
 Reserva: lote 1 = 8 chamadas, lote 2 = 4 (E20 não chama API); cabe na cota de 20.
 Não apertar Ctrl+C durante uma chamada: deixa envio sem resultado no ledger.
 
-> Registro histórico: o caminho é da máquina original. Para reproduzir, ajuste-o para a raiz do seu clone.
+> Registro histórico. Para reproduzir, troque `<raiz do seu clone>` pelo caminho do seu clone.
 ```powershell
 & {
     $ErrorActionPreference = 'Stop'
-    Set-Location 'C:\Users\Tchan\Documents\Base_de_Conhecimento\PROJETOS\01_PRIORITY\Tech_challenge_fase4'
+    Set-Location '<raiz do seu clone>'
     $env:PYTHONPATH = '.venv/sdk175'
     if (([datetime]::UtcNow).ToString('yyyy-MM-dd') -le '2026-10-20') { throw 'Fase 2 proibida em 20/10 UTC.' }
     $lotes = @(@('E01','E05','E13','E16'), @('E17','E19','E20'))

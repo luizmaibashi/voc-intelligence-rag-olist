@@ -35,7 +35,7 @@ experimento ficou documentado como abandonado.
 | Pasta | Conteúdo | Para quem |
 |---|---|---|
 | [`adr/`](adr/) | 8 decisões de arquitetura: corpus, busca, geração, contagem, elogios, modelo, repetição, citação | quem quer entender o porquê de cada escolha |
-| [`spec/`](spec/) | 10 contratos de comportamento, com critérios de aceite e testes | quem quer conferir o que o sistema garante |
+| [`spec/`](spec/) | 12 contratos de comportamento, com critérios de aceite e testes | quem quer conferir o que o sistema garante |
 | [`planejamento/`](planejamento/) | Registros de execução: instruções aos agentes, comando, previsão e votos da avaliação de 20/10 | quem quer auditar como uma etapa foi conduzida |
 | [`aprendizado/`](aprendizado/) | Missão de estudo e aulas usadas para entender os conceitos por trás das decisões | quem quer ver o raciocínio por trás dos conceitos |
 | [`video/`](video/) | Slides do vídeo de apresentação | apoio à apresentação |
