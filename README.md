@@ -309,6 +309,23 @@ O teste de importação da EDA não executa main nem altera seu relatório hist�
 Para gerar outra EDA, `python src/eda/01_eda_reviews.py` sobrescreve
 `reports/eda_olist.md`; esse comando deve fazer parte de uma reavaliação planejada.
 
+## Tela local
+
+Streamlit 1.65.0, publicado em 02/10/2026, fixado em `requirements-app.txt`.
+No ambiente do projeto, instale sem alterar dependências existentes:
+
+```powershell
+python -m pip freeze > .venv/constraints-tela.txt
+python -m pip install -r requirements-app.txt -c .venv/constraints-tela.txt
+python -m pip check
+$env:PYTHONPATH = '.venv/sdk175'
+python -m streamlit run src/tela/app.py
+```
+
+A tela exige corpus e pesos locais. Antes do vídeo, execute
+`python -X utf8 scripts/paridade_tela.py` e confirme `ok` nos três casos.
+O envio real exige a chave Gemini no ambiente e a liberação pelo hash da prévia.
+
 ## Licença e atribuição
 
 O código em `src/`, `tests/` e scripts está sob [MIT](LICENSE). Dados derivados
