@@ -7,6 +7,36 @@ from statistics import median
 
 from statsmodels.stats.proportion import proportion_confint
 
+PERGUNTAS_DEMO = (
+    {"id": "E-A", "pergunta": "O que os clientes relatam sobre entregas atrasadas?",
+     "k": 10, "nota_min": None, "nota_max": 2, "situacao": "atrasado",
+     "categoria": None, "compra_de": None, "compra_ate": None,
+     "hash": "28fb0e20214f31f163156580e6a1f3fddfcd18c6fa71fc890e5a607506b40a88"},
+    {"id": "E-B", "pergunta": "O que os clientes relatam que aconteceu depois que a entrega atrasou?",
+     "k": 10, "nota_min": None, "nota_max": 2, "situacao": "atrasado",
+     "categoria": None, "compra_de": None, "compra_ate": None,
+     "hash": "72ea2402264ac2f80a6a7c3ea043a10de4b72209b6eddb07f53b2c1435bf68ec"},
+    {"id": "P15", "pergunta": "Qual é o prazo oficial de reembolso da Olist quando uma entrega atrasa?",
+     "k": 10, "nota_min": None, "nota_max": 2, "situacao": "atrasado",
+     "categoria": None, "compra_de": None, "compra_ate": None,
+     "hash": "c53daa6570b52c72f4a9b289b7ae87d21be989beac77b7af34f9c729a8684e24"},
+)
+
+MENSAGENS_STATUS = {
+    "respondida": "Resposta com fontes citadas",
+    "sem_evidencia": "Sem evidência nos relatos: o sistema recusou responder",
+    "erro_geracao": "Falha do serviço de geração (não é recusa)",
+}
+
+
+def mensagem_status(status: str) -> str:
+    return f"{MENSAGENS_STATUS[status]} ({status})" if status in MENSAGENS_STATUS else status
+
+
+def hash_confere(colado: str, previa: str) -> bool:
+    """Compara exatamente o texto que será passado ao servidor, inclusive espaços."""
+    return colado == previa
+
 
 def _opcional(valor):
     if valor is None or valor == "" or valor == "Todos":
