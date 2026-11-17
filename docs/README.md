@@ -19,8 +19,9 @@ resultado ficou registrado mesmo quando contrariou a expectativa.
    aprovação e a previsão ficam escritas. O resultado não é reinterpretado
    depois.
 4. **Execução delegada e auditada.** Parte da execução foi feita por agentes de
-   IA a partir de instruções fechadas (os briefs em `planejamento/`); cada
-   entrega foi conferida contra testes e arquivos antes de entrar no `main`.
+   IA a partir de instruções fechadas; cada entrega foi conferida contra
+   testes e arquivos antes de entrar no `main`. Os briefs de execução saíram
+   da versão publicada e continuam no histórico do Git (`docs/planejamento/`).
 
 ## Um caso em que o processo mudou o rumo
 
@@ -34,11 +35,9 @@ experimento ficou documentado como abandonado.
 
 | Pasta | Conteúdo | Para quem |
 |---|---|---|
-| [`adr/`](adr/) | 8 decisões de arquitetura: corpus, busca, geração, contagem, elogios, modelo, repetição, citação | quem quer entender o porquê de cada escolha |
-| [`spec/`](spec/) | 12 contratos de comportamento, com critérios de aceite e testes | quem quer conferir o que o sistema garante |
-| [`planejamento/`](planejamento/) | Registros de execução: instruções aos agentes, comando, previsão e votos da avaliação de 20/10 | quem quer auditar como uma etapa foi conduzida |
-| [`aprendizado/`](aprendizado/) | Missão de estudo e aulas usadas para entender os conceitos por trás das decisões | quem quer ver o raciocínio por trás dos conceitos |
+| [`adr/`](adr/) | 10 decisões de arquitetura: corpus, busca, geração, contagem, elogios, modelo, repetição, citação, busca híbrida, tela local | quem quer entender o porquê de cada escolha |
+| [`spec/`](spec/) | 14 contratos de comportamento, com critérios de aceite e testes | quem quer conferir o que o sistema garante |
 | [`video/`](video/) | Slides do vídeo de apresentação | apoio à apresentação |
 
-Os registros de `planejamento/` são mantidos como foram escritos na época.
-Alguns citam arquivos de trabalho que não fazem parte do repositório público.
+Specs e ADRs antigas são mantidas como foram escritas na época. Algumas citam
+arquivos de trabalho que não fazem parte da versão publicada.
