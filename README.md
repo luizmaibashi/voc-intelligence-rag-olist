@@ -4,6 +4,8 @@ Projeto do Tech Challenge Fase 4 da FIAP. A proposta é ajudar um gestor de
 atendimento a investigar relatos sobre entregas, conferir os comentários que
 sustentam uma resposta e consultar uma contagem de atrasos com população definida.
 
+**Autor:** Luiz Maibashi (trabalho individual).
+
 O núcleo usa MiniLM multilíngue para embeddings, DuckDB para busca exata e
 Gemini 3.1 Flash-Lite para geração com contexto revisado. O CLI oferece busca,
 fontes, contagem e resposta gerada com citações; cada envio ao Gemini exige
