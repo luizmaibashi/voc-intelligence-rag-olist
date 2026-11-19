@@ -1,10 +1,25 @@
 # Voice of Customer Intelligence com RAG
 
-Projeto do Tech Challenge Fase 4 da FIAP. A proposta é ajudar um gestor de
-atendimento a investigar relatos sobre entregas, conferir os comentários que
-sustentam uma resposta e consultar uma contagem de atrasos com população definida.
+Um gestor de atendimento pergunta "o que os clientes relatam sobre atraso?" e
+recebe uma resposta montada só com avaliações reais, cada uma citada e
+conferível. A contagem de atrasos sai de código, não do modelo.
 
-**Autor:** Luiz Maibashi (trabalho individual).
+Projeto do Tech Challenge Fase 4 da FIAP. **Autor:** Luiz Maibashi (trabalho individual).
+
+## Em um minuto
+
+| | |
+|---|---|
+| **A dor** | Para entender uma reclamação recorrente, o gestor precisa ler comentário por comentário ou confiar num resumo que não mostra de onde veio. |
+| **Onde o LLM entra** | Só na redação da resposta (Gemini 3.1 Flash-Lite), a partir de um contexto que a pessoa lê e libera antes do envio. |
+| **Onde não entra** | Busca (embeddings + SQL no DuckDB), filtros, contagem de atrasos e validação das citações são código. Uma citação fora do contexto invalida a resposta. |
+| **O que medi** | Busca: Precisão@10 de 0,71 (IC95% 0,55 a 0,86; 14 perguntas, um anotador). Atrasos: 3.813 de 40.303 avaliações de pedidos entregues (9,46%, IC95% 9,18% a 9,75%). |
+| **O que testei e abandonei** | Busca híbrida (Precisão@10 caiu de 0,71 para 0,64) e citação por frase (perdeu uma resposta que a versão entregue dava). |
+| **Limites** | Dados de 2016 a 2018. Avaliação com comentário tem viés de autosseleção. Os 20 casos aprovados foram escolhidos a dedo e não estimam a confiabilidade em pergunta nova. |
+
+Detalhes em [Arquitetura e avaliação](#arquitetura-e-avaliação) e [Limites da entrega](#limites-da-entrega).
+
+## Como o código está organizado
 
 O núcleo usa MiniLM multilíngue para embeddings, DuckDB para busca exata e
 Gemini 3.1 Flash-Lite para geração com contexto revisado. O CLI oferece busca,
